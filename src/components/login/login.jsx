@@ -1,21 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+
+// Form & Validation
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Mail, Lock, Loader2, AlertTriangle, HardHat } from "lucide-react";
+import * as z from "zod";
 
+// Icons
+import { Loader2, Eye, EyeOff, Lock, Mail, ArrowRight } from "lucide-react";
+
+
+// UI Components
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -24,186 +27,295 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { signIn, useSession } from "next-auth/react";
-import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
 
-const formSchema = z.object({
-  email: z
-    .string()
-    .email({ message: "Please enter a valid email address." })
-    .trim()
-    .max(100, { message: "Email must not exceed 100 characters." }),
-  password: z
-    .string()
-    .min(1, { message: "Password cannot be empty." })
-    .max(100, { message: "Password must not exceed 100 characters." }),
+// --- Configuration: Solid Islamic Emerald Theme ---
+const THEME_COLOR = "#046c4e"; // Deep Emerald Green
+const THEME_LIGHT = "#def7ec"; // Very light green for backgrounds
+const THEME_HOVER = "#03543f"; // Darker green for hover
+
+// --- Validation Schema ---
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(1, { message: "Password is required" }),
+  rememberMe: z.boolean().default(false),
 });
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [serverError, setServerError] = useState(null);
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const searchparams = useSearchParams();
-
-  useEffect(() => {
-    const returnUrl = searchparams.get("return_url");
-    if (status === "authenticated") {
-      toast.info("Already logged in. Redirecting...");
-      router.push(returnUrl || "/");
-    }
-  }, [status, router]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [globalError, setGlobalError] = useState(null);
 
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
   async function onSubmit(values) {
-    setIsLoading(true);
-    setServerError(null);
+    setGlobalError(null);
+    try {
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
 
-    setServerError(null);
-
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: values.email,
-      password: values.password,
-    });
-
-    if (result.ok) {
-      toast.success("Login Succesfull!");
-      setServerError(null);
-
-      router.push("/");
-      setIsLoading(false);
-    } else {
-      toast.error("Login Failed!");
-      setServerError("Invalid email or password. Please try again.");
-      console.error("Login Error:", result.error);
-      setIsLoading(false);
+      if (result?.error) {
+        setGlobalError("Invalid email or password.");
+        form.setValue("password", "");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (error) {
+      setGlobalError("Connection error. Please try again.");
     }
   }
 
+  const handleSocialLogin = (provider) => {
+    signIn(provider, { callbackUrl: "/dashboard" });
+  };
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 p-4 font-sans">
-      <div className="w-full max-w-md">
-        <Card className="bg-white shadow-xl border-slate-200">
-          <CardHeader className="text-center pb-6">
-            <div className="flex justify-center mb-4">
-              <HardHat className="h-10 w-10 text-blue-600" />
-            </div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-slate-800">
-              POS Terminal Login
-            </CardTitle>
-            <CardDescription className="text-slate-500 text-sm mt-1">
-              Access your Industrial Point of Sale system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+    // MAIN CONTAINER: White background for cleanliness
+    <div className="min-h-dvh w-full lg:grid lg:grid-cols-2 bg-white font-sans text-slate-900">
+      {/* ---------------- LEFT SIDE: Islamic Pattern & Branding ---------------- */}
+      <div
+        className="relative hidden h-full flex-col p-10 text-white lg:flex"
+        style={{ backgroundColor: THEME_COLOR }}
+      >
+        {/* CSS-Only Islamic Geometric Pattern Overlay */}
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(${THEME_LIGHT} 2px, transparent 2px), radial-gradient(${THEME_LIGHT} 2px, transparent 2px)`,
+            backgroundSize: "32px 32px",
+            backgroundPosition: "0 0, 16px 16px",
+          }}
+        />
+
+        {/* Logo Area */}
+        <div className="relative z-20 flex items-center gap-3">
+          <div className="relative h-12 w-12 bg-white/10 rounded-full p-2 flex items-center justify-center border border-white/20">
+            <Image
+              src="/assets/images/hadhi-logo.png"
+              alt="Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+          </div>
+          <span className="text-2xl font-bold tracking-tight">
+            Majidhul Haadhi
+          </span>
+        </div>
+
+        {/* Center Visual (Optional: You can put a mosque vector or just text here) */}
+        <div className="flex-1 flex items-center justify-center relative z-20">
+          <div className="space-y-4 text-center max-w-md">
+            <h2 className="text-4xl font-bold leading-tight">
+              Manage your finances with{" "}
+              <span className="text-[#6ee7b7]">Ehsan</span>
+            </h2>
+            <p className="text-emerald-100/80 text-lg">
+              Excellence in accounting, transparency in records.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer Quote */}
+        <div className="relative z-20 mt-auto border-t border-emerald-400/30 pt-6">
+          <blockquote className="space-y-2">
+            <p className="text-lg italic text-emerald-50">
+              &ldquo;Verily, Allah commands you to render trusts to whom they
+              are due.&rdquo;
+            </p>
+            <footer className="text-sm font-semibold text-emerald-200">
+              Surah An-Nisa 4:58
+            </footer>
+          </blockquote>
+        </div>
+      </div>
+
+      {/* ---------------- RIGHT SIDE: Clean White Form ---------------- */}
+      <div className="flex items-center justify-center p-8 bg-slate-50/50">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[400px]">
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Sign In
+            </h1>
+            <p className="text-sm text-slate-500">
+              Welcome back to your accounting book
+            </p>
+          </div>
+
+          <div className="grid gap-6">
+            {/* Global Error */}
+            {globalError && (
+              <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-100 text-center">
+                {globalError}
+              </div>
+            )}
+
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
+                className="space-y-5"
               >
-                <div className="space-y-4">
+                {/* Email */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                          <Input
+                            placeholder="name@example.com"
+                            {...field}
+                            className="pl-10 h-11 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all"
+                            style={{
+                              "--tw-ring-color": THEME_COLOR,
+                              // Custom active border color
+                              borderColor: "inherit",
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs text-red-500" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Password */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            {...field}
+                            className="pl-10 h-11 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-offset-0 transition-all"
+                            style={{ "--tw-ring-color": THEME_COLOR }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs text-red-500" />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center justify-between">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="rememberMe"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-700">
-                          Email Address
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            // Custom color override for checkbox
+                            className="border-slate-300 data-[state=checked]:border-none text-white"
+                            style={{
+                              backgroundColor: field.value
+                                ? THEME_COLOR
+                                : "transparent",
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-medium text-slate-600 cursor-pointer">
+                          Remember me
                         </FormLabel>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                          <FormControl>
-                            <Input
-                              placeholder="operator@company.com"
-                              type="email"
-                              autoComplete="username"
-                              className="pl-10 bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                              {...field}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage className="text-red-600" />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-slate-700">
-                          Password
-                        </FormLabel>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                          <FormControl>
-                            <Input
-                              placeholder="••••••••"
-                              type="password"
-                              autoComplete="current-password"
-                              className="pl-10 bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                              {...field}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage className="text-red-600" />
-                      </FormItem>
-                    )}
-                  />
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-semibold hover:underline"
+                    style={{ color: THEME_COLOR }}
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
 
-                {serverError && (
-                  <Alert
-                    variant="destructive"
-                    className="bg-red-50 border-red-200 text-red-800"
-                  >
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <AlertTitle>Login Failed</AlertTitle>
-                    <AlertDescription>{serverError}</AlertDescription>
-                  </Alert>
-                )}
-
+                {/* Submit Button - Solid Color */}
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-200"
-                  disabled={isLoading}
+                  disabled={form.formState.isSubmitting}
+                  className="w-full h-11 text-white font-bold text-base shadow-sm hover:opacity-90 transition-all mt-2"
+                  style={{ backgroundColor: THEME_COLOR }}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Authenticating...
-                    </>
+                  {form.formState.isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    "Secure Login"
+                    <>
+                      Sign In <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </form>
             </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col items-center pt-4">
-            <Link
-              href="/forgot-password"
-              className="text-sm underline text-slate-500 hover:text-blue-600 transition-colors duration-200"
-            >
-              Forgot Password?
-            </Link>
-            <p className="text-xs text-slate-400 mt-4 text-center">
-              All access is monitored for security purposes.
+
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-slate-50 px-2 text-slate-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+           
+
+            <p className="px-8 text-center text-sm text-slate-500 mt-4">
+              By clicking continue, you agree to our{" "}
+              <Link
+                href="/terms"
+                className="underline underline-offset-4 hover:text-slate-900"
+              >
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                className="underline underline-offset-4 hover:text-slate-900"
+              >
+                Privacy Policy
+              </Link>
+              .
             </p>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
