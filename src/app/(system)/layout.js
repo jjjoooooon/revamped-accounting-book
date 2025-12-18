@@ -16,24 +16,24 @@ export default function AppLayout({ children }) {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center">
-      <DashboardLayoutSkeleton/>
+        <DashboardLayoutSkeleton />
       </div>
     );
   }
-  
+
   return (
-      <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar variant="inset" />
-          <div className="flex-1 overflow-x-auto"> {/* Container for scrolling */}
-            <SidebarInset>
-           <div className='flex flex-col'>
-           <div className='mt-3 mx-6 rounded-sm'> <SystemBreadcrumb/></div>
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar variant="inset" />
+        <div className="flex-1 overflow-x-auto"> {/* Container for scrolling */}
+          <SidebarInset>
+            <div className='flex flex-col'>
+              <div className='mt-3 mx-6 rounded-sm'> <SystemBreadcrumb /></div>
               {children}
-           </div>
-            </SidebarInset>
-          </div>
+            </div>
+          </SidebarInset>
         </div>
-      </SidebarProvider>
+      </div>
+    </SidebarProvider>
   );
 }
