@@ -14,7 +14,6 @@ import {
   CreditCard,
   MapPin,
   Phone,
-  Phone,
   Mail,
   Loader2
 } from "lucide-react";

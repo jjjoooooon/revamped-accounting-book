@@ -13,7 +13,6 @@ import {
   Mail,
   Smartphone,
   ShieldAlert,
-  ShieldAlert,
   Download,
   Loader2
 } from "lucide-react";

@@ -12,7 +12,6 @@ import {
   ArrowUpDown,
   Filter,
   CheckSquare,
-  CheckSquare,
   Archive,
   Loader2
 } from "lucide-react";
