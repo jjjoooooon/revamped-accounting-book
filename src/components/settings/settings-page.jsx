@@ -18,8 +18,12 @@ import {
   Loader2,
   Download,
   PanelBottom,
+  Activity,
+  Server,
+  Clock,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Inbox
 } from "lucide-react";
 import { toast } from "sonner";
 // UI Imports
@@ -55,20 +59,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils"; // Ensure you have this utility or remove usage
 
 // --- MOCK DATA ---
-const initialSettings = {
-  mosqueName: "Al-Manar Grand Mosque",
-  regNo: "MQ/2023/885",
-  email: "admin@almanar.lk",
-  phone: "+94 77 123 4567",
-  address: "123 Mosque Road, Kandy, Sri Lanka",
-  currency: "LKR",
-  fiscalYearStart: "January",
-  autoBillDate: "1", 
-  receiptFooter: "Jazakallahu Khairan. May Allah accept your deeds.",
-  smsEnabled: true,
-  emailEnabled: false
-};
-
+// --- MOCK DATA ---
 const teamMembers = [
   { id: 1, name: "Admin User", role: "Super Admin", email: "admin@masjid.com", status: "Active" },
   { id: 2, name: "Treasurer", role: "Accountant", email: "finance@masjid.com", status: "Active" },
@@ -80,33 +71,64 @@ const TAB_ITEMS = [
   { value: "general", label: "General Profile", icon: Building2, description: "Mosque details and branding" },
   { value: "finance", label: "Financial Config", icon: Wallet, description: "Billing cycles and currency" },
   { value: "notifications", label: "Notifications", icon: Bell, description: "Email and SMS alerts" },
-  { value: "team", label: "Team & Roles", icon: Users, description: "Manage access levels" },
+  { value: "team", label: "Team & Roles", icon: Users, description: "Manage access levels", role: "superadmin" },
   { value: "footer", label: "Footer Settings", icon: PanelBottom, description: "App-wide footer content", role: "superadmin" },
+  { value: "system-status", label: "System Status", icon: Activity, description: "Health & Performance", role: "superadmin" },
+  { value: "admin-alerts", label: "Admin Alerts", icon: Inbox, description: "Contact & Reset requests", role: "superadmin" },
   { value: "backup", label: "System & Backup", icon: Database, description: "Data management", variant: "danger" },
 ];
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState({});
   const [activeTab, setActiveTab] = useState("general");
   const [isSaving, setIsSaving] = useState(false);
   const [footerSettings, setFooterSettings] = useState(null);
+  
+  // Factory Reset State
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmPhrase, setResetConfirmPhrase] = useState('');
+  const [resetReason, setResetReason] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  
+  // Contact Admin State
+  const [contactSubject, setContactSubject] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isContactSending, setIsContactSending] = useState(false);
 
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const { data: appSettings, isLoading: isLoadingFooter, mutate } = useSWR('/api/settings/app', fetcher);
+  const { data: systemStatus, isLoading: isLoadingSystem } = useSWR(activeTab === 'system-status' ? '/api/system/status' : null, fetcher, { refreshInterval: 30000 });
+  const { data: adminAlerts, mutate: mutateAlerts } = useSWR(activeTab === 'admin-alerts' ? '/api/admin/notifications' : null, fetcher, { refreshInterval: 60000 });
+  const { data: resetRequests, mutate: mutateResets } = useSWR(activeTab === 'admin-alerts' ? '/api/admin/reset-requests' : null, fetcher, { refreshInterval: 60000 });
 
   useEffect(() => {
     if (appSettings) {
       setFooterSettings(appSettings);
+      setSettings(appSettings);
     }
   }, [appSettings]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-        setIsSaving(false);
+    try {
+      const response = await fetch('/api/settings/app', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...settings, ...footerSettings }),
+      });
+
+      if (response.ok) {
         toast.success("Settings Updated Successfully");
-    }, 1000);
+        mutate();
+      } else {
+        toast.error("Failed to update settings");
+      }
+    } catch (error) {
+      toast.error("Failed to update settings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -149,6 +171,100 @@ export default function SettingsPage() {
       toast.error('Failed to update footer settings');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleFactoryReset = async () => {
+    setIsResetting(true);
+    try {
+      const response = await fetch('/api/system/factory-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          confirmationPhrase: resetConfirmPhrase,
+          expectedPhrase: settings.mosqueName || 'DELETE ALL DATA',
+          reason: resetReason,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success('Factory reset completed. Data will be held for 7 days before permanent deletion.');
+        setShowResetConfirm(false);
+        setResetConfirmPhrase('');
+        setResetReason('');
+      } else {
+        toast.error(data.error || 'Factory reset failed');
+      }
+    } catch (error) {
+      toast.error('Factory reset failed');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleContactAdmin = async () => {
+    setIsContactSending(true);
+    try {
+      const response = await fetch('/api/contact-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: contactSubject,
+          message: contactMessage,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success('Message sent to administrator');
+        setContactSubject('');
+        setContactMessage('');
+      } else {
+        toast.error(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      toast.error('Failed to send message');
+    } finally {
+      setIsContactSending(false);
+    }
+  };
+
+  const handleMarkRead = async (notificationId, markAllRead = false) => {
+    try {
+      const response = await fetch('/api/admin/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId, markAllRead }),
+      });
+
+      if (response.ok) {
+        mutateAlerts();
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+    }
+  };
+
+  const handleResetAction = async (resetRequestId, action) => {
+    try {
+      const response = await fetch('/api/admin/reset-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetRequestId, action }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+        mutateResets();
+      } else {
+        toast.error(data.error || 'Action failed');
+      }
+    } catch (error) {
+      toast.error('Action failed');
     }
   };
 
@@ -435,6 +551,119 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
                         </TabsContent>
+                        {/* TAB: ADMIN ALERTS (SUPER ADMIN) */}
+                        {session?.user?.role === 'superadmin' && (
+                          <TabsContent value="admin-alerts" className="mt-0 space-y-6">
+                              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                                  <div>
+                                      <h2 className="text-lg font-medium text-slate-900">Admin Alerts</h2>
+                                      <p className="text-sm text-slate-500">Manage reset requests and user messages.</p>
+                                  </div>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleMarkRead(null, true)}
+                                    disabled={!adminAlerts?.unreadCount}
+                                  >
+                                    Mark all as read
+                                  </Button>
+                              </div>
+
+                              <div className="grid lg:grid-cols-2 gap-6">
+                                  {/* Contact Messages */}
+                                  <div className="space-y-4">
+                                      <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                          <Mail className="w-4 h-4" /> Contact Messages
+                                      </h3>
+                                      {adminAlerts?.notifications?.filter(n => n.type === 'CONTACT_FORM').length === 0 ? (
+                                          <Card className="border-dashed border-slate-200 shadow-none">
+                                              <CardContent className="p-8 text-center text-slate-400 text-sm">
+                                                  No contact messages found.
+                                              </CardContent>
+                                          </Card>
+                                      ) : (
+                                          adminAlerts?.notifications?.filter(n => n.type === 'CONTACT_FORM').map((notif) => (
+                                              <Card key={notif.id} className={cn("border-slate-200 shadow-sm transition-all", !notif.isRead && "border-emerald-200 bg-emerald-50/30")}>
+                                                  <CardContent className="p-4 space-y-3">
+                                                      <div className="flex justify-between items-start">
+                                                          <div>
+                                                              <p className="font-medium text-slate-900">{notif.title}</p>
+                                                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                                                  <Clock className="w-3 h-3" /> {new Date(notif.createdAt).toLocaleString()}
+                                                              </p>
+                                                          </div>
+                                                          {!notif.isRead && (
+                                                              <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-600" onClick={() => handleMarkRead(notif.id)}>
+                                                                  <CheckCircle2 className="w-4 h-4" />
+                                                              </Button>
+                                                          )}
+                                                      </div>
+                                                      <p className="text-sm text-slate-600 bg-white p-3 rounded border border-slate-100 italic">
+                                                          "{notif.message}"
+                                                      </p>
+                                                      <div className="flex items-center justify-between text-xs">
+                                                          <span className="text-slate-500">From: {notif.data?.userName} ({notif.data?.userEmail})</span>
+                                                          <a href={`mailto:${notif.data?.contactEmail}`} className="text-emerald-600 font-medium hover:underline">Reply</a>
+                                                      </div>
+                                                  </CardContent>
+                                              </Card>
+                                          ))
+                                      )}
+                                  </div>
+
+                                  {/* Reset Requests */}
+                                  <div className="space-y-4">
+                                      <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                          <ShieldAlert className="w-4 h-4" /> Reset Requests
+                                      </h3>
+                                      {resetRequests?.length === 0 ? (
+                                          <Card className="border-dashed border-slate-200 shadow-none">
+                                              <CardContent className="p-8 text-center text-slate-400 text-sm">
+                                                  No reset requests found.
+                                              </CardContent>
+                                          </Card>
+                                      ) : (
+                                          resetRequests?.map((request) => (
+                                              <Card key={request.id} className={cn("border-slate-200 shadow-sm", request.status === 'pending' ? "border-rose-200 bg-rose-50/30" : "opacity-70")}>
+                                                  <CardContent className="p-4 space-y-3">
+                                                      <div className="flex justify-between items-start">
+                                                          <div>
+                                                              <div className="flex items-center gap-2">
+                                                                  <p className="font-medium text-slate-900">Reset by {request.userName}</p>
+                                                                  <span className={cn(
+                                                                      "text-[10px] px-2 py-0.5 rounded-full font-bold uppercase",
+                                                                      request.status === 'pending' ? "bg-rose-100 text-rose-700" : 
+                                                                      request.status === 'restored' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"
+                                                                  )}>
+                                                                      {request.status}
+                                                                  </span>
+                                                              </div>
+                                                              <p className="text-xs text-slate-500">Requested: {new Date(request.createdAt).toLocaleDateString()}</p>
+                                                          </div>
+                                                      </div>
+                                                      <p className="text-xs text-slate-600">Reason: {request.reason || 'None provided'}</p>
+                                                      
+                                                      {request.status === 'pending' && (
+                                                          <div className="pt-2 border-t border-rose-100 flex items-center justify-between">
+                                                              <p className="text-[10px] text-rose-600 font-medium">Auto-delete: {new Date(request.autoDeleteAt).toLocaleDateString()}</p>
+                                                              <div className="flex gap-2">
+                                                                  <Button size="sm" variant="outline" className="h-7 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={() => handleResetAction(request.id, 'restore')}>
+                                                                      Restore
+                                                                  </Button>
+                                                                  <Button size="sm" variant="destructive" className="h-7 text-xs bg-rose-600" onClick={() => handleResetAction(request.id, 'delete')}>
+                                                                      Purge
+                                                                  </Button>
+                                                              </div>
+                                                          </div>
+                                                      )}
+                                                  </CardContent>
+                                              </Card>
+                                          ))
+                                      )}
+                                  </div>
+                              </div>
+                          </TabsContent>
+                        )}
 
                         {/* TAB 5: BACKUP */}
                         <TabsContent value="backup" className="mt-0 space-y-6">
@@ -450,25 +679,124 @@ export default function SettingsPage() {
                                     <CardContent className="p-6 flex items-center justify-between">
                                         <div>
                                             <p className="font-medium text-slate-900">Export Database</p>
-                                            <p className="text-sm text-slate-500">Download a full SQL dump of the current system.</p>
+                                            <p className="text-sm text-slate-500">Download a full JSON backup of all mosque data.</p>
                                         </div>
-                                        <Button variant="outline" className="gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            className="gap-2"
+                                            onClick={() => {
+                                                window.open('/api/system/backup', '_blank');
+                                                toast.success('Backup download started');
+                                            }}
+                                        >
                                             <Download className="w-4 h-4" /> Download
                                         </Button>
                                     </CardContent>
                                 </Card>
 
                                 <Card className="border-rose-200 bg-rose-50/50 shadow-none">
-                                    <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <CardContent className="p-6 space-y-4">
                                         <div className="space-y-1">
                                             <p className="font-bold text-rose-800">Factory Reset</p>
-                                            <p className="text-sm text-rose-600">This will wipe all members, payments, and expenses permanently. This action cannot be undone.</p>
+                                            <p className="text-sm text-rose-600">
+                                                This will mark all members, payments, expenses, and other data for deletion. 
+                                                An admin can restore your data within 7 days. After that, data is permanently deleted.
+                                            </p>
                                         </div>
-                                        <Button variant="destructive" className="bg-rose-600 hover:bg-rose-700 whitespace-nowrap">Reset All Data</Button>
+                                        
+                                        {!showResetConfirm ? (
+                                            <Button 
+                                                variant="destructive" 
+                                                className="bg-rose-600 hover:bg-rose-700"
+                                                onClick={() => setShowResetConfirm(true)}
+                                            >
+                                                Reset All Data
+                                            </Button>
+                                        ) : (
+                                            <div className="space-y-4 p-4 bg-rose-100 rounded-lg border border-rose-200">
+                                                <div className="flex items-start gap-3">
+                                                    <ShieldAlert className="w-5 h-5 text-rose-700 mt-0.5" />
+                                                    <div>
+                                                        <p className="font-semibold text-rose-800">Are you absolutely sure?</p>
+                                                        <p className="text-sm text-rose-700">
+                                                            This action cannot be easily undone. Please type <strong>{settings.mosqueName || 'DELETE ALL DATA'}</strong> to confirm.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <Input
+                                                    placeholder="Type the phrase to confirm..."
+                                                    value={resetConfirmPhrase}
+                                                    onChange={(e) => setResetConfirmPhrase(e.target.value)}
+                                                    className="border-rose-300 focus:border-rose-500"
+                                                />
+                                                
+                                                <Textarea
+                                                    placeholder="Reason for reset (optional)..."
+                                                    value={resetReason}
+                                                    onChange={(e) => setResetReason(e.target.value)}
+                                                    rows={2}
+                                                    className="border-rose-300"
+                                                />
+                                                
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setShowResetConfirm(false);
+                                                            setResetConfirmPhrase('');
+                                                            setResetReason('');
+                                                        }}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        variant="destructive"
+                                                        className="bg-rose-600 hover:bg-rose-700"
+                                                        disabled={resetConfirmPhrase !== (settings.mosqueName || 'DELETE ALL DATA') || isResetting}
+                                                        onClick={handleFactoryReset}
+                                                    >
+                                                        {isResetting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                                        I understand, reset all data
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-slate-200 shadow-sm">
+                                    <CardContent className="p-6 space-y-4">
+                                        <div>
+                                            <p className="font-medium text-slate-900">Contact Administrator</p>
+                                            <p className="text-sm text-slate-500">Need help or want to restore deleted data? Send a message to the platform admin.</p>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <Input
+                                                placeholder="Subject..."
+                                                value={contactSubject}
+                                                onChange={(e) => setContactSubject(e.target.value)}
+                                            />
+                                            <Textarea
+                                                placeholder="Your message..."
+                                                value={contactMessage}
+                                                onChange={(e) => setContactMessage(e.target.value)}
+                                                rows={3}
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                disabled={!contactSubject || !contactMessage || isContactSending}
+                                                onClick={handleContactAdmin}
+                                            >
+                                                {isContactSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                                                Send Message
+                                            </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
                         </TabsContent>
+            
 
                         {/* TAB 6: FOOTER (SUPER ADMIN) */}
                          {session?.user?.role === 'superadmin' && (
@@ -520,7 +848,90 @@ export default function SettingsPage() {
                                       )}
                                   </CardContent>
                               </Card>
-                          </TabsContent>
+                              </TabsContent>
+
+
+                        )} 
+                        {session?.user?.role === 'superadmin' && (
+                            <TabsContent value="system-status" className="mt-0 space-y-6">
+                                <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                                    <div>
+                                        <h2 className="text-lg font-medium text-slate-900">System Status</h2>
+                                        <p className="text-sm text-slate-500">Real-time health and performance metrics.</p>
+                                    </div>
+                                    <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="gap-2">
+                                        <Activity className="w-4 h-4" /> Refresh
+                                    </Button>
+                                </div>
+
+                                {isLoadingSystem ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        {/* Database Status */}
+                                        <Card className="border-slate-200 shadow-sm">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-base flex items-center gap-2">
+                                                    <Database className="w-4 h-4 text-emerald-600" /> Database Health
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Connection Status</span>
+                                                    <Badge variant={systemStatus?.database?.status === 'connected' ? 'default' : 'destructive'} className={systemStatus?.database?.status === 'connected' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : ''}>
+                                                        {systemStatus?.database?.status === 'connected' ? 'Connected' : 'Disconnected'}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Response Latency</span>
+                                                    <span className="text-sm font-mono font-medium">{systemStatus?.database?.latency || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Database Size</span>
+                                                    <span className="text-sm font-mono font-medium">{systemStatus?.database?.size || 'Unknown'}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Provider</span>
+                                                    <span className="text-sm font-medium">{systemStatus?.database?.provider || 'PostgreSQL'}</span>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* System Info */}
+                                        <Card className="border-slate-200 shadow-sm">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-base flex items-center gap-2">
+                                                    <Server className="w-4 h-4 text-blue-600" /> Application Info
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">System Status</span>
+                                                    <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50">
+                                                        {systemStatus?.system?.status || 'Online'}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Environment</span>
+                                                    <span className="text-sm font-medium capitalize">{systemStatus?.system?.environment || 'Production'}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Version</span>
+                                                    <span className="text-sm font-mono font-medium">v{systemStatus?.system?.version || '1.0.0'}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                                    <span className="text-sm text-slate-600">Last Checked</span>
+                                                    <span className="text-xs text-slate-500 font-mono">
+                                                        {systemStatus?.system?.timestamp ? new Date(systemStatus.system.timestamp).toLocaleTimeString() : 'Just now'}
+                                                    </span>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                )}
+                            </TabsContent>
                         )}
                         
                     </motion.div>

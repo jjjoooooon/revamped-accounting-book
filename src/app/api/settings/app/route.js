@@ -18,6 +18,7 @@ export async function GET() {
                     footerText: 'Developed By: Inzeedo (PVT) Ltd.',
                     footerCopyright: '© 2025 All Rights Reserved',
                     showFooter: true,
+                    // Defaults are handled by Prisma schema
                 },
             });
         }
@@ -38,7 +39,12 @@ export async function PUT(request) {
         }
 
         const body = await request.json();
-        const { appName, appVersion, footerText, footerCopyright, showFooter } = body;
+        const {
+            appName, appVersion, footerText, footerCopyright, showFooter,
+            mosqueName, regNo, email, phone, address,
+            currency, fiscalYearStart, autoBillDate, receiptFooter,
+            smsEnabled, emailEnabled
+        } = body;
 
         // Validation
         if (!appName || !appVersion) {
@@ -54,25 +60,23 @@ export async function PUT(request) {
             settings = await prisma.appSettings.update({
                 where: { id: currentSettings.id },
                 data: {
-                    appName,
-                    appVersion,
-                    footerText,
-                    footerCopyright,
-                    showFooter: showFooter !== undefined ? showFooter : true,
+                    appName, appVersion, footerText, footerCopyright, showFooter,
+                    mosqueName, regNo, email, phone, address,
+                    currency, fiscalYearStart, autoBillDate, receiptFooter,
+                    smsEnabled, emailEnabled
                 },
             });
 
             // Log the update
-            await logUpdate(request, 'AppSettings', currentSettings, settings, 'appName');
+            await logUpdate(request, 'AppSettings', currentSettings, settings, 'mosqueName');
         } else {
             // Create new settings
             settings = await prisma.appSettings.create({
                 data: {
-                    appName,
-                    appVersion,
-                    footerText,
-                    footerCopyright,
-                    showFooter: showFooter !== undefined ? showFooter : true,
+                    appName, appVersion, footerText, footerCopyright, showFooter,
+                    mosqueName, regNo, email, phone, address,
+                    currency, fiscalYearStart, autoBillDate, receiptFooter,
+                    smsEnabled, emailEnabled
                 },
             });
         }
