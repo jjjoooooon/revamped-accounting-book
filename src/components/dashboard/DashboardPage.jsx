@@ -16,7 +16,10 @@ import {
   Trash2,
   TrendingUp,
   Calendar,
-  ChevronRight
+  ChevronRight,
+  HandCoins,
+  UserPlus,
+  Receipt
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
