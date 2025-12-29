@@ -149,11 +149,11 @@ export function AppSidebar({ ...props }) {
         url: "/settings",
         icon: Settings2,
       },
-      {
-        name: "User Roles (RBAC)",
-        url: "/users",
-        icon: Frame,
-      },
+      // {
+      //   name: "User Roles (RBAC)",
+      //   url: "/users",
+      //   icon: Frame,
+      // },
     ],
   };
 

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Wallet,
   Users,
+  User,
   FileText,
   ArrowUpRight,
   ArrowDownRight,
@@ -55,7 +56,8 @@ const menuVariants = {
 };
 
 import { accountingService } from "@/services/accountingService";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import useSWR from "swr";
 
 // ... (keep imports)
 
@@ -64,6 +66,10 @@ import { DashboardSkeleton } from "./DashboardSkeleton";
 // ... (keep imports)
 
 export default function MosqueDashboard() {
+  const { data: session } = useSession();
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data: settings } = useSWR('/api/settings/app', fetcher);
+
   // State Management
   // Dropdown States
   const [showNotifications, setShowNotifications] = useState(false);
@@ -174,8 +180,8 @@ export default function MosqueDashboard() {
                 <Moon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-emerald-950 tracking-tight">Masjidhul Haadhi</h1>
-                <p className="text-xs text-emerald-600 font-medium">Masjid Admin</p>
+                <h1 className="text-xl font-bold text-emerald-950 tracking-tight">{settings?.mosqueName || "Masjidhul Haadhi"}</h1>
+                <p className="text-xs text-emerald-600 font-medium capitalize">{session?.user?.role || "Masjid Admin"}</p>
               </div>
             </div>
 
@@ -253,9 +259,9 @@ export default function MosqueDashboard() {
                   className="flex items-center gap-2 hover:bg-slate-100 p-1 pr-3 rounded-full transition-colors outline-none"
                 >
                   <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200 text-emerald-700 font-semibold text-sm">
-                    MA
+                    {session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "MA"}
                   </div>
-                  <span className="text-xs font-medium text-slate-600">Admin</span>
+                  <span className="text-xs font-medium text-slate-600 capitalize">{session?.user?.name || "Admin"}</span>
                 </button>
 
                 <AnimatePresence>
@@ -265,8 +271,8 @@ export default function MosqueDashboard() {
                       className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 z-50 py-1"
                     >
                       <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                        <p className="text-sm font-bold text-slate-800">Masjid Admin</p>
-                        <p className="text-xs text-slate-500">admin@almanar.lk</p>
+                        <p className="text-sm font-bold text-slate-800">{session?.user?.name || "Masjid Admin"}</p>
+                        <p className="text-xs text-slate-500">{session?.user?.email || "admin@almanar.lk"}</p>
                       </div>
                       <a href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">
                         <User className="w-4 h-4" /> My Profile
@@ -302,7 +308,7 @@ export default function MosqueDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Dashboard Overview</h2>
-            <p className="text-slate-500">Welcome back, Administrator. Here's what's happening.</p>
+            <p className="text-slate-500">Welcome back, {session?.user?.name || "Administrator"}. Here's what's happening.</p>
           </div>
           
           <div className="flex gap-3 relative" ref={quickRef}>
