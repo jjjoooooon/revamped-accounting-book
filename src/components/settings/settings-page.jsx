@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,9 +56,8 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils"; // Ensure you have this utility or remove usage
+import { cn } from "@/lib/utils"; 
 
-// --- MOCK DATA ---
 // --- MOCK DATA ---
 const teamMembers = [
   { id: 1, name: "Admin User", role: "Super Admin", email: "admin@masjid.com", status: "Active" },
@@ -66,7 +65,7 @@ const teamMembers = [
   { id: 3, name: "Board Member", role: "Viewer", email: "board@masjid.com", status: "Inactive" },
 ];
 
-// Configuration for Tabs to make mapping easier and cleaner
+// Configuration for Tabs
 const TAB_ITEMS = [
   { value: "general", label: "General Profile", icon: Building2, description: "Mosque details and branding" },
   { value: "finance", label: "Financial Config", icon: Wallet, description: "Billing cycles and currency" },
@@ -84,6 +83,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [isSaving, setIsSaving] = useState(false);
   const [footerSettings, setFooterSettings] = useState(null);
+  const hasInitialized = useRef(false);
   
   // Factory Reset State
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -103,19 +103,22 @@ export default function SettingsPage() {
   const { data: resetRequests, mutate: mutateResets } = useSWR(activeTab === 'admin-alerts' ? '/api/admin/reset-requests' : null, fetcher, { refreshInterval: 60000 });
 
   useEffect(() => {
-    if (appSettings) {
+    if (appSettings && !hasInitialized.current) {
       setFooterSettings(appSettings);
       setSettings(appSettings);
+      hasInitialized.current = true;
     }
   }, [appSettings]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // FIXED: Swapped order to {...footerSettings, ...settings}
+      // This ensures 'settings' (which contains your edits) overwrites the old data in 'footerSettings'
       const response = await fetch('/api/settings/app', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...settings, ...footerSettings }),
+        body: JSON.stringify({ ...footerSettings, ...settings }), 
       });
 
       if (response.ok) {
@@ -310,9 +313,6 @@ export default function SettingsPage() {
                                         isActive && !isDanger && "text-emerald-700 bg-emerald-50",
                                     )}
                                 >
-                                   
-                                   
-
                                     <div className="flex items-center gap-3 relative z-10">
                                         <Icon className={cn("w-4 h-4", isActive ? "opacity-100" : "opacity-70 group-hover:opacity-100")} />
                                         <span>{item.label}</span>
@@ -375,23 +375,23 @@ export default function SettingsPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                                             <div className="space-y-2">
                                                 <Label htmlFor="mosqueName">Mosque Name</Label>
-                                                <Input id="mosqueName" value={settings.mosqueName} onChange={handleChange} className="h-10" />
+                                                <Input id="mosqueName" value={settings.mosqueName || ''} onChange={handleChange} className="h-10" />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="regNo">Registration No.</Label>
-                                                <Input id="regNo" value={settings.regNo} onChange={handleChange} className="h-10" />
+                                                <Input id="regNo" value={settings.regNo || ''} onChange={handleChange} className="h-10" />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="email">Official Email</Label>
-                                                <Input id="email" value={settings.email} onChange={handleChange} className="h-10" />
+                                                <Input id="email" value={settings.email || ''} onChange={handleChange} className="h-10" />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone">Contact Phone</Label>
-                                                <Input id="phone" value={settings.phone} onChange={handleChange} className="h-10" />
+                                                <Input id="phone" value={settings.phone || ''} onChange={handleChange} className="h-10" />
                                             </div>
                                             <div className="space-y-2 md:col-span-2">
                                                 <Label htmlFor="address">Address</Label>
-                                                <Textarea id="address" value={settings.address} onChange={handleChange} className="min-h-[100px] resize-none" />
+                                                <Textarea id="address" value={settings.address || ''} onChange={handleChange} className="min-h-[100px] resize-none" />
                                             </div>
                                         </div>
                                     </div>
@@ -418,7 +418,7 @@ export default function SettingsPage() {
                                         <div className="space-y-2">
                                             <Label>Fiscal Year Start</Label>
                                             <Select defaultValue={settings.fiscalYearStart} onValueChange={(v) => handleSelectChange('fiscalYearStart', v)}>
-                                                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className="h-10 w-full"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="January">January</SelectItem>
                                                     <SelectItem value="April">April</SelectItem>
@@ -428,7 +428,7 @@ export default function SettingsPage() {
                                         <div className="space-y-2">
                                             <Label>Base Currency</Label>
                                             <div className="relative">
-                                                <Input disabled value={settings.currency} className="h-10 pl-9 bg-slate-50" />
+                                                <Input disabled value={settings.currency || 'LKR'} className="h-10 pl-9 bg-slate-50" />
                                                 <span className="absolute left-3 top-3 text-slate-500 text-xs font-bold">LKR</span>
                                             </div>
                                         </div>
@@ -452,7 +452,7 @@ export default function SettingsPage() {
                                             <div className="space-y-2">
                                                 <Label>Generation Day</Label>
                                                 <Select defaultValue={settings.autoBillDate} onValueChange={(v) => handleSelectChange('autoBillDate', v)}>
-                                                    <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                                                    <SelectTrigger className="h-10 w-full"><SelectValue /></SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="1">1st of Month</SelectItem>
                                                         <SelectItem value="5">5th of Month</SelectItem>
@@ -471,7 +471,7 @@ export default function SettingsPage() {
                                     <CardContent>
                                         <div className="space-y-2">
                                             <Label>Footer Message</Label>
-                                            <Input id="receiptFooter" value={settings.receiptFooter} onChange={handleChange} className="h-10" />
+                                            <Input id="receiptFooter" value={settings.receiptFooter || ''} onChange={handleChange} className="h-10" />
                                             <p className="text-xs text-slate-500">Appears at the bottom of printed receipts.</p>
                                         </div>
                                     </CardContent>
@@ -496,7 +496,7 @@ export default function SettingsPage() {
                                                 <p className="text-sm text-slate-500">Send digital receipts via email automatically.</p>
                                             </div>
                                         </div>
-                                        <Switch checked={settings.emailEnabled} onCheckedChange={() => handleToggle('emailEnabled')} className="data-[state=checked]:bg-emerald-600" />
+                                        <Switch checked={settings.emailEnabled || false} onCheckedChange={() => handleToggle('emailEnabled')} className="data-[state=checked]:bg-emerald-600" />
                                     </div>
                                     <div className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-colors">
                                         <div className="flex items-start gap-4">
@@ -506,7 +506,7 @@ export default function SettingsPage() {
                                                 <p className="text-sm text-slate-500">Send payment reminders via WhatsApp integration.</p>
                                             </div>
                                         </div>
-                                        <Switch checked={settings.smsEnabled} onCheckedChange={() => handleToggle('smsEnabled')} className="data-[state=checked]:bg-emerald-600" />
+                                        <Switch checked={settings.smsEnabled || false} onCheckedChange={() => handleToggle('smsEnabled')} className="data-[state=checked]:bg-emerald-600" />
                                     </div>
                                 </CardContent>
                             </Card>
