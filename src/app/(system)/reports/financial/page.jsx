@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   PieChart as PieChartIcon,
@@ -28,7 +28,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { format, subMonths } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, parse } from "date-fns";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,21 @@ export default function FinancialReportsPage() {
     to: new Date(),
   });
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [reportMonth, setReportMonth] = useState("December 2025");
+  // Generate last 12 months for the dropdown
+  const monthOptions = Array.from({ length: 12 }, (_, i) => {
+    const d = subMonths(new Date(), i);
+    return format(d, "MMMM yyyy");
+  });
+  const [reportMonth, setReportMonth] = useState(monthOptions[0]);
+
+  const handleMonthChange = (value) => {
+      setReportMonth(value);
+      const date = parse(value, "MMMM yyyy", new Date());
+      setDateRange({
+          from: startOfMonth(date),
+          to: endOfMonth(date),
+      });
+  };
   
   const [financialSummary, setFinancialSummary] = useState({
     totalIncome: 0, totalExpense: 0, netSurplus: 0, cashOnHand: 0, bankBalance: 0, pendingBills: 0
@@ -118,7 +132,7 @@ export default function FinancialReportsPage() {
       }
   };
 
-  useState(() => {
+  useEffect(() => {
       fetchReportData();
   }, [dateRange]);
 
@@ -349,14 +363,14 @@ export default function FinancialReportsPage() {
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
               Monthly Report:
             </span>
-            <Select value={reportMonth} onValueChange={setReportMonth}>
-              <SelectTrigger className="h-8 border-none shadow-none w-[140px] focus:ring-0 text-slate-700 font-medium bg-transparent">
+            <Select value={reportMonth} onValueChange={handleMonthChange}>
+              <SelectTrigger className="h-8 border-none shadow-none w-[160px] focus:ring-0 text-slate-700 font-medium bg-transparent">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="December 2025">December 2025</SelectItem>
-                <SelectItem value="November 2025">November 2025</SelectItem>
-                <SelectItem value="October 2025">October 2025</SelectItem>
+                {monthOptions.map((month) => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <div className="h-4 w-px bg-slate-200 mx-1"></div>
@@ -377,22 +391,22 @@ export default function FinancialReportsPage() {
           onValueChange={setActiveTab}
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <TabsList className="bg-white border border-slate-200 p-1 rounded-xl shadow-sm h-auto">
+            <TabsList className="">
               <TabsTrigger
                 value="dashboard"
-                className="rounded-lg py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+                className=" py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
               >
                 <PieChartIcon className="w-4 h-4 mr-2" /> Dashboard
               </TabsTrigger>
               <TabsTrigger
                 value="statement"
-                className="rounded-lg py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+                className=" py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
               >
                 <FileText className="w-4 h-4 mr-2" /> Income Statement
               </TabsTrigger>
               <TabsTrigger
                 value="balance"
-                className="rounded-lg py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+                className=" py-2 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
               >
                 <Landmark className="w-4 h-4 mr-2" /> Balance Sheet
               </TabsTrigger>
@@ -686,7 +700,7 @@ export default function FinancialReportsPage() {
               <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
                 <CardTitle className="text-lg">Balance Sheet</CardTitle>
                 <CardDescription>
-                  As of {format(new Date(), "MMMM dd, yyyy")}
+                  As of {format(dateRange.to, "MMMM dd, yyyy")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6 md:p-8">
