@@ -29,85 +29,97 @@ model User {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  status      String    @default("active")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  budgetLimit Float     @default(0)
-  color       String?   @default("emerald")
-  expenses    Expense[]
-  income      Income[]
+  id               String    @id @default(cuid())
+  name             String
+  description      String?
+  status           String    @default("active")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  budgetLimit      Float     @default(0)
+  color            String?   @default("emerald")
+  deletedAt        DateTime?
+  deletedByResetId String?
+  expenses         Expense[]
+  income           Income[]
+
+  @@index([deletedAt])
 }
 
 model Expense {
-  id          String   @id @default(cuid())
-  amount      Float
-  description String?
-  date        DateTime @default(now())
-  categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  category    Category @relation(fields: [categoryId], references: [id])
+  id               String    @id @default(cuid())
+  amount           Float
+  description      String?
+  date             DateTime  @default(now())
+  categoryId       String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  deletedByResetId String?
+  category         Category  @relation(fields: [categoryId], references: [id])
 
-  // Optimization: Foreign Key & Date filtering
   @@index([categoryId])
   @@index([date])
+  @@index([deletedAt])
 }
 
 model Income {
-  id          String   @id @default(cuid())
-  amount      Float
-  description String?
-  date        DateTime @default(now())
-  categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  category    Category @relation(fields: [categoryId], references: [id])
+  id               String    @id @default(cuid())
+  amount           Float
+  description      String?
+  date             DateTime  @default(now())
+  categoryId       String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  deletedByResetId String?
+  category         Category  @relation(fields: [categoryId], references: [id])
 
-  // Optimization: Foreign Key & Date filtering
   @@index([categoryId])
   @@index([date])
+  @@index([deletedAt])
 }
 
 model Invoice {
-  id         String    @id @default(cuid())
-  invoiceNo  String    @unique
-  amount     Float
-  status     String    @default("pending")
-  dueDate    DateTime
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  memberId   String
-  paidAmount Float     @default(0)
-  period     String?
-  type       String    @default("Sanda")
-  member     Member    @relation(fields: [memberId], references: [id])
-  payments   Payment[]
+  id               String    @id @default(cuid())
+  invoiceNo        String    @unique
+  amount           Float
+  status           String    @default("pending")
+  dueDate          DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  memberId         String
+  paidAmount       Float     @default(0)
+  period           String?
+  type             String    @default("Sanda")
+  deletedAt        DateTime?
+  deletedByResetId String?
+  member           Member    @relation(fields: [memberId], references: [id])
+  payments         Payment[]
 
-  // Optimization: Critical for dashboard "Pending vs Paid" stats
   @@index([memberId])
   @@index([status])
   @@index([dueDate])
   @@index([type])
+  @@index([deletedAt])
 }
 
 model Payment {
-  id            String       @id @default(cuid())
-  invoiceId     String
-  amount        Float
-  date          DateTime     @default(now())
-  method        String
-  bankAccountId String?
-  createdAt     DateTime     @default(now())
-  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
-  invoice       Invoice      @relation(fields: [invoiceId], references: [id])
+  id               String       @id @default(cuid())
+  invoiceId        String
+  amount           Float
+  date             DateTime     @default(now())
+  method           String
+  bankAccountId    String?
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+  deletedByResetId String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
+  invoice          Invoice      @relation(fields: [invoiceId], references: [id])
 
-  // Optimization: Linking payments to banks/invoices
   @@index([invoiceId])
   @@index([bankAccountId])
   @@index([date])
+  @@index([deletedAt])
 }
 
 model Member {
@@ -123,67 +135,169 @@ model Member {
   status           String     @default("active")
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+  deletedByResetId String?
   donations        Donation[]
   invoices         Invoice[]
 
-  // Optimization: Searching members by contact/status
   @@index([status])
   @@index([contact])
+  @@index([deletedAt])
+}
+
+model Donor {
+  id          String     @id @default(cuid())
+  name        String
+  contact     String?
+  email       String?
+  address     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  donations   Donation[]
 }
 
 model Donation {
-  id            String   @id @default(cuid())
-  amount        Float
-  date          DateTime @default(now())
-  purpose       String
-  paymentMethod String
-  isAnonymous   Boolean  @default(false)
-  donorType     String
-  donorName     String?
-  memberId      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  member        Member?  @relation(fields: [memberId], references: [id])
+  id               String    @id @default(cuid())
+  amount           Float
+  date             DateTime  @default(now())
+  purpose          String
+  paymentMethod    String
+  isAnonymous      Boolean   @default(false)
+  donorType        String
+  donorName        String?
+  memberId         String?
+  donorId          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  deletedByResetId String?
+  member           Member?   @relation(fields: [memberId], references: [id])
+  donor            Donor?    @relation(fields: [donorId], references: [id])
 
-  // Optimization: Reporting on donations
   @@index([memberId])
+  @@index([donorId])
   @@index([date])
   @@index([donorType])
+  @@index([deletedAt])
 }
 
 model BankAccount {
-  id            String    @id @default(cuid())
-  bankName      String
-  accountName   String
-  accountNumber String
-  branch        String?
-  type          String
-  balance       Float     @default(0)
-  status        String    @default("Active")
-  color         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  transactions  Ledger[]
-  payments      Payment[]
+  id               String    @id @default(cuid())
+  bankName         String
+  accountName      String
+  accountNumber    String
+  branch           String?
+  type             String
+  balance          Float     @default(0)
+  status           String    @default("Active")
+  color            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  deletedByResetId String?
+  transactions     Ledger[]
+  payments         Payment[]
+
+  @@index([deletedAt])
 }
 
 model Ledger {
-  id            String       @id @default(cuid())
-  date          DateTime     @default(now())
-  description   String
-  amount        Float
-  type          String
-  category      String?
-  bankAccountId String?
-  referenceId   String?
-  referenceType String?
-  createdAt     DateTime     @default(now())
-  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  id               String       @id @default(cuid())
+  date             DateTime     @default(now())
+  description      String
+  amount           Float
+  type             String
+  category         String?
+  bankAccountId    String?
+  referenceId      String?
+  referenceType    String?
+  createdAt        DateTime     @default(now())
+  deletedAt        DateTime?
+  deletedByResetId String?
+  bankAccount      BankAccount? @relation(fields: [bankAccountId], references: [id])
 
-  // Optimization: General Ledger filtering
   @@index([bankAccountId])
   @@index([date])
   @@index([type])
-  // Composite index: Super fast for finding "Related Transactions" (Polymorphic lookups)
   @@index([referenceType, referenceId])
+  @@index([deletedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  userId     String?
+  userName   String?
+  action     String
+  entityType String
+  entityId   String
+  entityName String?
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([action])
+}
+
+model AppSettings {
+  id              String   @id @default(cuid())
+  appName         String   @default("Masjid Accounting System")
+  appVersion      String   @default("1.0.0")
+  footerText      String   @default("Developed By: Inzeedo (PVT) Ltd.")
+  footerCopyright String   @default("© 2025 All Rights Reserved")
+  showFooter      Boolean  @default(true)
+  
+  // Organization Profile
+  mosqueName      String   @default("Al-Manar Grand Mosque")
+  logo            String?  // Base64 or URL
+  regNo           String?  @default("MQ/2023/885")
+  email           String?  @default("admin@almanar.lk")
+  phone           String?  @default("+94 77 123 4567")
+  address         String?  @default("123 Mosque Road, Kandy, Sri Lanka")
+  
+  // Financial Config
+  currency        String   @default("LKR")
+  fiscalYearStart String   @default("January")
+  autoBillDate    String   @default("1")
+  receiptFooter   String?  @default("Jazakallahu Khairan. May Allah accept your deeds.")
+  
+  // Notifications
+  smsEnabled      Boolean  @default(true)
+  emailEnabled    Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+model ResetRequest {
+  id           String    @id @default(cuid())
+  userId       String
+  userName     String
+  reason       String?
+  status       String    @default("pending") // pending, restored, expired, deleted
+  autoDeleteAt DateTime  // 7 days from creation
+  createdAt    DateTime  @default(now())
+  restoredAt   DateTime?
+  deletedAt    DateTime?
+
+  @@index([status])
+  @@index([autoDeleteAt])
+}
+
+model AdminNotification {
+  id        String   @id @default(cuid())
+  type      String   // RESET_REQUEST, CONTACT_FORM, etc.
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([type])
 }

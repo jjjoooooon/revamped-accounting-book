@@ -14,6 +14,7 @@ import {
   ChevronsUpDown,
   Search,
   Users,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -48,13 +49,14 @@ import { JoinedDatePicker } from "./JoinedDatePicker";
 import { Badge } from "@/components/ui/badge";
 import { donationService } from "@/services/donationService";
 import { memberService } from "@/services/memberService";
+import { donorService } from "@/services/donorService";
+import { DonorForm } from "@/components/donations/donor-form";
 
 // --- CONFIGURATION ---
-const MOSQUE_DETAILS = {
-  name: "Al-Manar Grand Mosque",
-  address: "123 Main Street, Kandy",
-  contact: "+94 77 123 4567",
-  regNo: "Reg No: MQ/2023/885"
+const DEFAULT_MOSQUE_DETAILS = {
+  name: "Masjid Name",
+  address: "Address Line 1",
+  contact: "Contact Number",
 };
 
 const fundTypes = [
@@ -66,18 +68,13 @@ const fundTypes = [
 
 // ... (keep other imports)
 
-// Remove mockMembers
-// const mockMembers = ... 
-
-// Inside component
-// const [members, setMembers] = useState([]);
-
-// Fetch members on mount
-// useState(() => { ... }, []);
-
 // --- THERMAL RECEIPT COMPONENT ---
-const ThermalReceipt = ({ data }) => {
+const ThermalReceipt = ({ data, settings }) => {
   if (!data) return null;
+
+  const mosqueName = settings?.mosqueName || DEFAULT_MOSQUE_DETAILS.name;
+  const address = settings?.address || DEFAULT_MOSQUE_DETAILS.address;
+  const contact = settings?.phone || DEFAULT_MOSQUE_DETAILS.contact;
 
   return (
     <div id="thermal-receipt" className="hidden print:block p-2 bg-white text-black font-mono text-sm leading-tight">
@@ -98,9 +95,9 @@ const ThermalReceipt = ({ data }) => {
       `}</style>
       
       <div className="text-center mb-4">
-        <h1 className="font-bold text-lg uppercase">{MOSQUE_DETAILS.name}</h1>
-        <p className="text-xs">{MOSQUE_DETAILS.address}</p>
-        <p className="text-xs">{MOSQUE_DETAILS.contact}</p>
+        <h1 className="font-bold text-lg uppercase">{mosqueName}</h1>
+        <p className="text-xs">{address}</p>
+        <p className="text-xs">{contact}</p>
       </div>
 
       <div className="border-b-2 border-dashed border-black my-2" />
@@ -143,7 +140,10 @@ const ThermalReceipt = ({ data }) => {
 
       <div className="text-center text-xs space-y-4 mt-6">
         <p>"May Allah accept your deeds."</p>
-        <div className="pt-8 border-t border-black w-3/4 mx-auto">Authorized Signature</div>
+        <div className="mt-4 pt-2 border-t border-dashed border-black/50 opacity-70">
+            <p className="font-semibold">Product of Inzeedo</p>
+            <p>Contact number 0785706441</p>
+        </div>
       </div>
     </div>
   );
@@ -153,6 +153,7 @@ const ThermalReceipt = ({ data }) => {
 const formSchema = z.object({
   donorType: z.enum(["member", "guest"]),
   memberId: z.string().optional(),
+  donorId: z.string().optional(),
   donorName: z.string().optional(),
   amount: z.coerce.number().min(1, "Enter amount"),
   date: z.date(),
@@ -167,20 +168,33 @@ export default function DonationEntryWithPrint({ initialData }) {
   const [printData, setPrintData] = useState(null);
   const [openMemberSearch, setOpenMemberSearch] = useState(false);
   const [members, setMembers] = useState([]); // Real members state
+  const [appSettings, setAppSettings] = useState(null);
+  
+  // Donor Selection State
+  const [donors, setDonors] = useState([]);
+  const [openDonorSearch, setOpenDonorSearch] = useState(false);
+  const [isDonorFormOpen, setIsDonorFormOpen] = useState(false);
+  
   const guestInputRef = useRef(null); 
   const isEditMode = !!initialData;
 
-  // Fetch members on mount
+  // Fetch data on mount
   useEffect(() => {
-      const fetchMembers = async () => {
+      const fetchData = async () => {
           try {
-              const data = await memberService.getAll();
-              setMembers(data);
+              const [membersData, settingsData, donorsData] = await Promise.all([
+                  memberService.getAll(),
+                  fetch('/api/settings/app').then(res => res.json()),
+                  donorService.getAll()
+              ]);
+              setMembers(membersData);
+              setAppSettings(settingsData);
+              setDonors(donorsData);
           } catch (error) {
-              console.error("Failed to fetch members", error);
+              console.error("Failed to fetch data", error);
           }
       };
-      fetchMembers();
+      fetchData();
   }, []);
 
   const form = useForm({
@@ -201,6 +215,12 @@ export default function DonationEntryWithPrint({ initialData }) {
   const donorType = form.watch("donorType");
   const currentPurpose = form.watch("purpose");
   const autoPrint = form.watch("autoPrint");
+
+  const handleDonorSelect = (donor) => {
+    form.setValue("donorName", donor.name);
+    form.setValue("donorId", donor.id);
+    setOpenDonorSearch(false);
+  };
 
   const triggerPrint = (entry) => {
     setPrintData(entry);
@@ -244,6 +264,7 @@ export default function DonationEntryWithPrint({ initialData }) {
                 donorType: data.donorType,
                 donorName: data.donorName,
                 memberId: data.memberId,
+                donorId: data.donorId,
                 // bankAccountId: selectedBankAccountId // TODO: Add bank account selector if needed
             });
             toast.success("Saved Successfully");
@@ -283,7 +304,7 @@ export default function DonationEntryWithPrint({ initialData }) {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 relative">
-      <ThermalReceipt data={printData} />
+      <ThermalReceipt data={printData} settings={appSettings} />
 
       <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         
@@ -374,7 +395,7 @@ export default function DonationEntryWithPrint({ initialData }) {
                                     <FormLabel className="text-slate-600">Method</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                        <SelectTrigger className="bg-white border-slate-200 h-10">
+                                        <SelectTrigger className="bg-white border-slate-200 h-10 w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         </FormControl>
@@ -452,10 +473,58 @@ export default function DonationEntryWithPrint({ initialData }) {
                                     control={form.control}
                                     name="donorName"
                                     render={({ field }) => (
-                                        <FormItem>
-                                        <FormControl>
-                                            <Input placeholder="Guest Name" className="bg-white h-11" {...field} ref={guestInputRef} />
-                                        </FormControl>
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Guest Name</FormLabel>
+                                        <div className="relative">
+                                            <FormControl>
+                                                <Input 
+                                                    placeholder="Guest Name" 
+                                                    className="bg-white h-11" 
+                                                    {...field} 
+                                                    ref={guestInputRef} 
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        setOpenDonorSearch(true);
+                                                    }}
+                                                    onFocus={() => setOpenDonorSearch(true)}
+                                                    onBlur={() => setTimeout(() => setOpenDonorSearch(false), 200)}
+                                                />
+                                            </FormControl>
+                                            
+                                            {/* Donor Search Dropdown */}
+                                            {openDonorSearch && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                                                    <div 
+                                                        className="p-2 hover:bg-emerald-50 cursor-pointer text-emerald-600 font-medium flex items-center gap-2 border-b"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault(); // Prevent blur
+                                                            setIsDonorFormOpen(true);
+                                                            setOpenDonorSearch(false);
+                                                        }}
+                                                    >
+                                                        <UserPlus className="w-4 h-4" /> Add New Donor
+                                                    </div>
+                                                    {donors
+                                                    .filter(d => d.name.toLowerCase().includes((field.value || "").toLowerCase()))
+                                                    .map(donor => (
+                                                        <div
+                                                        key={donor.id}
+                                                        className="p-2 hover:bg-slate-50 cursor-pointer border-b last:border-0"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault(); // Prevent blur
+                                                            handleDonorSelect(donor);
+                                                        }}
+                                                        >
+                                                        <div className="font-medium text-sm">{donor.name}</div>
+                                                        {donor.contact && <div className="text-xs text-slate-500">{donor.contact}</div>}
+                                                        </div>
+                                                    ))}
+                                                    {donors.filter(d => d.name.toLowerCase().includes((field.value || "").toLowerCase())).length === 0 && (
+                                                        <div className="p-2 text-xs text-slate-400 text-center">No existing donors found</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                         <FormMessage />
                                         </FormItem>
                                     )}

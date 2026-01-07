@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -45,6 +45,20 @@ export default function LoginPage() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [showPassword, setShowPassword] = useState(false);
   const [globalError, setGlobalError] = useState(null);
+
+  // Branding State
+  const [logoSrc, setLogoSrc] = useState("/assets/images/hadhi-logo.png");
+  const [mosqueName, setMosqueName] = useState("Majidhul Haadhi");
+
+  useEffect(() => {
+    fetch('/api/settings/app')
+      .then(res => res.json())
+      .then(data => {
+        if (data.logo) setLogoSrc(data.logo);
+        if (data.mosqueName) setMosqueName(data.mosqueName);
+      })
+      .catch(err => console.error("Failed to load branding", err));
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -102,7 +116,7 @@ export default function LoginPage() {
         <div className="relative z-20 flex items-center gap-3">
           <div className="relative h-12 w-12 bg-white/10 rounded-full p-2 flex items-center justify-center border border-white/20">
             <Image
-              src="/assets/images/hadhi-logo.png"
+              src={logoSrc}
               alt="Logo"
               width={40}
               height={40}
@@ -110,7 +124,7 @@ export default function LoginPage() {
             />
           </div>
           <span className="text-2xl font-bold tracking-tight">
-            Majidhul Haadhi
+            {mosqueName}
           </span>
         </div>
 

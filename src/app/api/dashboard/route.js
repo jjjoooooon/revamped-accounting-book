@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
-export async function GET() {
-    try {
+// Define the cached data fetching function
+const getDashboardData = unstable_cache(
+    async () => {
         const now = new Date();
         const currentMonthStart = startOfMonth(now);
         const currentMonthEnd = endOfMonth(now);
@@ -55,7 +57,7 @@ export async function GET() {
 
         // --- Calculate Stats Values ---
         const totalIncomeValue = (totalDonations._sum.amount || 0) + (totalPayments._sum.amount || 0) + (totalOther._sum.amount || 0);
-        
+
         const lastMonthIncome = (lastMonthDonations._sum.amount || 0) + (lastMonthPayments._sum.amount || 0) + (lastMonthOther._sum.amount || 0);
         const thisMonthIncome = (thisMonthDonations._sum.amount || 0) + (thisMonthPayments._sum.amount || 0) + (thisMonthOther._sum.amount || 0);
         const incomeChange = lastMonthIncome === 0 ? 100 : ((thisMonthIncome - lastMonthIncome) / lastMonthIncome) * 100;
@@ -121,7 +123,7 @@ export async function GET() {
         // ==========================================
         // We generate an array of 6 months, then map over them with Promise.all
         const last6Months = Array.from({ length: 6 }, (_, i) => i);
-        
+
         const chartData = await Promise.all(last6Months.reverse().map(async (i) => {
             const date = subMonths(now, i);
             const monthStart = startOfMonth(date);
@@ -143,11 +145,7 @@ export async function GET() {
             };
         }));
 
-
-        // ==========================================
-        // 4. RETURN RESPONSE
-        // ==========================================
-        return NextResponse.json({
+        return {
             stats: [
                 {
                     title: "Total Income",
@@ -188,8 +186,16 @@ export async function GET() {
             ],
             activities,
             chartData
-        });
+        };
+    },
+    ['dashboard-stats'], // Cache key
+    { revalidate: 60 }   // Revalidate every 60 seconds
+);
 
+export async function GET() {
+    try {
+        const data = await getDashboardData();
+        return NextResponse.json(data);
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
