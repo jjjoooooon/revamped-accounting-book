@@ -6,27 +6,27 @@
  */
 export function generateEAN13() {
   // Generate 12 random digits
-  let code = ""
+  let code = "";
   for (let i = 0; i < 12; i++) {
-    code += Math.floor(Math.random() * 10)
+    code += Math.floor(Math.random() * 10);
   }
 
   // Calculate check digit
-  const checkDigit = calculateEAN13CheckDigit(code)
-  return code + checkDigit
+  const checkDigit = calculateEAN13CheckDigit(code);
+  return code + checkDigit;
 }
 
 /**
  * Calculates the check digit for an EAN-13 barcode
  */
 function calculateEAN13CheckDigit(code) {
-  let sum = 0
+  let sum = 0;
   for (let i = 0; i < 12; i++) {
-    const digit = Number.parseInt(code[i])
-    sum += i % 2 === 0 ? digit : digit * 3
+    const digit = Number.parseInt(code[i]);
+    sum += i % 2 === 0 ? digit : digit * 3;
   }
-  const checkDigit = (10 - (sum % 10)) % 10
-  return checkDigit
+  const checkDigit = (10 - (sum % 10)) % 10;
+  return checkDigit;
 }
 
 /**
@@ -34,23 +34,23 @@ function calculateEAN13CheckDigit(code) {
  */
 export function validateEAN13(barcode) {
   if (!/^\d{13}$/.test(barcode)) {
-    return false
+    return false;
   }
 
-  const code = barcode.slice(0, 12)
-  const checkDigit = Number.parseInt(barcode[12])
-  return calculateEAN13CheckDigit(code) === checkDigit
+  const code = barcode.slice(0, 12);
+  const checkDigit = Number.parseInt(barcode[12]);
+  return calculateEAN13CheckDigit(code) === checkDigit;
 }
 
 /**
  * Generates a simple numeric barcode (for internal use)
  */
 export function generateSimpleBarcode(prefix = "PRD") {
-  const timestamp = Date.now().toString().slice(-8)
+  const timestamp = Date.now().toString().slice(-8);
   const random = Math.floor(Math.random() * 1000)
     .toString()
-    .padStart(3, "0")
-  return `${prefix}${timestamp}${random}`
+    .padStart(3, "0");
+  return `${prefix}${timestamp}${random}`;
 }
 
 /**
@@ -59,7 +59,7 @@ export function generateSimpleBarcode(prefix = "PRD") {
 export function formatBarcodeDisplay(barcode) {
   if (barcode.length === 13) {
     // EAN-13 format: X-XXXXXX-XXXXXX-X
-    return `${barcode[0]}-${barcode.slice(1, 7)}-${barcode.slice(7, 13)}`
+    return `${barcode[0]}-${barcode.slice(1, 7)}-${barcode.slice(7, 13)}`;
   }
-  return barcode
+  return barcode;
 }

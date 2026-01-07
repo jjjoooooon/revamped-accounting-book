@@ -72,18 +72,18 @@ export default function CreateGRNSkeleton() {
               <Skeleton className="h-4 w-12" />
               <Skeleton className="h-4 w-20" />
             </div>
-            
+
             {/* Table Rows (Create 5 mock rows) */}
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex gap-4 items-center">
                 <Skeleton className="h-10 w-1/4" /> {/* Product Select */}
-                <Skeleton className="h-10 w-16" />  {/* Batch */}
-                <Skeleton className="h-10 w-24" />  {/* Expiry */}
-                <Skeleton className="h-10 w-12" />  {/* Ordered */}
-                <Skeleton className="h-10 w-16" />  {/* Received */}
-                <Skeleton className="h-10 w-12" />  {/* Free */}
-                <Skeleton className="h-10 w-20" />  {/* Cost */}
-                <Skeleton className="h-10 w-20" />  {/* Sell */}
+                <Skeleton className="h-10 w-16" /> {/* Batch */}
+                <Skeleton className="h-10 w-24" /> {/* Expiry */}
+                <Skeleton className="h-10 w-12" /> {/* Ordered */}
+                <Skeleton className="h-10 w-16" /> {/* Received */}
+                <Skeleton className="h-10 w-12" /> {/* Free */}
+                <Skeleton className="h-10 w-20" /> {/* Cost */}
+                <Skeleton className="h-10 w-20" /> {/* Sell */}
                 <Skeleton className="h-10 w-24 ml-auto" /> {/* Total */}
               </div>
             ))}

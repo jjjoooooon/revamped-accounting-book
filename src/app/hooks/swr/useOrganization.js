@@ -1,15 +1,15 @@
-import useSWR from 'swr';
-import { useSession } from 'next-auth/react';
+import useSWR from "swr";
+import { useSession } from "next-auth/react";
 
-const fetcher = (url, accessToken) => 
+const fetcher = (url, accessToken) =>
   fetch(url, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
     },
-  }).then(res => {
+  }).then((res) => {
     if (!res.ok) {
-      throw new Error('An error occurred while fetching the data.');
+      throw new Error("An error occurred while fetching the data.");
     }
     return res.json();
   });
@@ -18,32 +18,34 @@ export function useOrganizations() {
   const { data: session } = useSession();
   const accessToken = session?.accessToken;
 
-  const { 
-    data: response, 
-    error, 
-    isLoading, 
-    mutate 
+  const {
+    data: response,
+    error,
+    isLoading,
+    mutate,
   } = useSWR(
-    accessToken 
+    accessToken
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/organizations`
       : null,
-    (url) => fetcher(url, accessToken) 
+    (url) => fetcher(url, accessToken),
   );
 
   const organizationsArray = response ? response.data.data : [];
-  
-  const pagination = response ? {
-    currentPage: response.data.current_page,
-    lastPage: response.data.last_page,
-    total: response.data.total,
-    perPage: response.data.per_page,
-    from: response.data.from,
-    to: response.data.to,
-  } : null;
+
+  const pagination = response
+    ? {
+        currentPage: response.data.current_page,
+        lastPage: response.data.last_page,
+        total: response.data.total,
+        perPage: response.data.per_page,
+        from: response.data.from,
+        to: response.data.to,
+      }
+    : null;
 
   return {
     organizations: organizationsArray,
-    pagination, 
+    pagination,
     isLoading,
     isError: error,
     mutate,

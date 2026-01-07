@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
 export function useOffline() {
-  const [isOnline, setIsOnline] = useState(true)
-  const [wasOffline, setWasOffline] = useState(false)
+  const [isOnline, setIsOnline] = useState(true);
+  const [wasOffline, setWasOffline] = useState(false);
 
   useEffect(() => {
     const updateOnlineStatus = () => {
-      const online = navigator.onLine
-      setIsOnline(online)
+      const online = navigator.onLine;
+      setIsOnline(online);
 
       if (!online) {
-        setWasOffline(true)
-        console.log("[v0] Application is now offline")
+        setWasOffline(true);
+        console.log("[v0] Application is now offline");
       } else if (wasOffline) {
-        console.log("[v0] Application is back online")
+        console.log("[v0] Application is back online");
       }
-    }
+    };
 
-    updateOnlineStatus()
+    updateOnlineStatus();
 
-    window.addEventListener("online", updateOnlineStatus)
-    window.addEventListener("offline", updateOnlineStatus)
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
 
     return () => {
-      window.removeEventListener("online", updateOnlineStatus)
-      window.removeEventListener("offline", updateOnlineStatus)
-    }
-  }, [wasOffline])
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, [wasOffline]);
 
-  return { isOnline, wasOffline }
+  return { isOnline, wasOffline };
 }

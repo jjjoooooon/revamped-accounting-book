@@ -159,20 +159,30 @@ export default function OtherIncomePage() {
               <Coins className="h-8 w-8 text-emerald-600" />
               Other Income
             </h1>
-            <p className="text-slate-500">Manage rents, land income, and other revenue sources.</p>
+            <p className="text-slate-500">
+              Manage rents, land income, and other revenue sources.
+            </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleAddNew} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+              <Button
+                onClick={handleAddNew}
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              >
                 <Plus className="h-4 w-4" /> Record Income
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingIncome ? "Edit Income" : "Record New Income"}</DialogTitle>
+                <DialogTitle>
+                  {editingIncome ? "Edit Income" : "Record New Income"}
+                </DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="description"
@@ -180,7 +190,10 @@ export default function OtherIncomePage() {
                       <FormItem>
                         <FormLabel>Description / Reference</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Shop Rent - Jan" {...field} />
+                          <Input
+                            placeholder="e.g. Shop Rent - Jan"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -205,7 +218,10 @@ export default function OtherIncomePage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select Category" />
@@ -236,14 +252,20 @@ export default function OtherIncomePage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
-                        <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {editingIncome ? "Updating..." : "Saving..."}
-                        </>
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {editingIncome ? "Updating..." : "Saving..."}
+                      </>
+                    ) : editingIncome ? (
+                      "Update Record"
                     ) : (
-                        editingIncome ? "Update Record" : "Save Record"
+                      "Save Record"
                     )}
                   </Button>
                 </form>
@@ -272,15 +294,22 @@ export default function OtherIncomePage() {
                 </TableRow>
               ) : incomes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                  <TableCell
+                    colSpan={5}
+                    className="h-24 text-center text-slate-500"
+                  >
                     No income records found.
                   </TableCell>
                 </TableRow>
               ) : (
                 incomes.map((income) => (
                   <TableRow key={income.id}>
-                    <TableCell>{format(new Date(income.date), "MMM dd, yyyy")}</TableCell>
-                    <TableCell className="font-medium text-slate-900">{income.description}</TableCell>
+                    <TableCell>
+                      {format(new Date(income.date), "MMM dd, yyyy")}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-900">
+                      {income.description}
+                    </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
                         {income.category?.name}

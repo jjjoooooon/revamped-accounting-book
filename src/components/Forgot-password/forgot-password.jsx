@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
             <p className="text-sm text-slate-500">
               {isSubmitted
                 ? `We have sent a password reset link to ${form.getValues(
-                    "email"
+                    "email",
                   )}`
                 : "No worries, we'll send you reset instructions."}
             </p>

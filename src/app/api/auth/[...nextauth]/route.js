@@ -35,14 +35,14 @@ export const authOptions = {
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         );
 
         if (!isPasswordValid) {
           return null;
         }
 
-        if (user.status !== 'approved') {
+        if (user.status !== "approved") {
           throw new Error("Your account is pending approval.");
         }
 

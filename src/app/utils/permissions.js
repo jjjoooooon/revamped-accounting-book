@@ -1,5 +1,3 @@
-
-
 export const ROLE_PERMISSIONS = {
   super_admin: [
     "manage_branches",
@@ -40,15 +38,21 @@ export const ROLE_PERMISSIONS = {
     "manage_pricing",
     "generate_qr",
   ],
-  inventory_manager: ["manage_products", "manage_inventory", "view_reports", "transfer_inventory", "generate_qr"],
+  inventory_manager: [
+    "manage_products",
+    "manage_inventory",
+    "view_reports",
+    "transfer_inventory",
+    "generate_qr",
+  ],
   cashier: ["process_sales", "manage_customers"],
   accountant: ["view_reports"],
-}
+};
 
 export function hasPermission(userRole, permission, customPermissions) {
-  const rolePermissions = ROLE_PERMISSIONS[userRole] || []
-  const allPermissions = [...rolePermissions, ...(customPermissions || [])]
-  return allPermissions.includes(permission)
+  const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
+  const allPermissions = [...rolePermissions, ...(customPermissions || [])];
+  return allPermissions.includes(permission);
 }
 
 export function canAccessRoute(userRole, route, customPermissions) {
@@ -64,12 +68,12 @@ export function canAccessRoute(userRole, route, customPermissions) {
     "/permissions": "manage_users", // Added permissions route mapping
     "/qr-generator": "generate_qr",
     "/print-templates": "customize_prints",
-  }
+  };
 
-  const requiredPermission = routePermissions[route]
-  if (!requiredPermission) return true
+  const requiredPermission = routePermissions[route];
+  if (!requiredPermission) return true;
 
-  return hasPermission(userRole, requiredPermission, customPermissions)
+  return hasPermission(userRole, requiredPermission, customPermissions);
 }
 
 export function checkMultiplePermissions(
@@ -77,7 +81,9 @@ export function checkMultiplePermissions(
   permissions,
   customPermissions,
 ) {
-  return permissions.some((permission) => hasPermission(userRole, permission, customPermissions))
+  return permissions.some((permission) =>
+    hasPermission(userRole, permission, customPermissions),
+  );
 }
 
 export function hasHigherRole(userRole, targetRole) {
@@ -88,7 +94,7 @@ export function hasHigherRole(userRole, targetRole) {
     inventory_manager: 3,
     accountant: 2,
     cashier: 1,
-  }
+  };
 
-  return (roleHierarchy[userRole] || 0) > (roleHierarchy[targetRole] || 0)
+  return (roleHierarchy[userRole] || 0) > (roleHierarchy[targetRole] || 0);
 }

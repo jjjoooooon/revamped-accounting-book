@@ -13,7 +13,6 @@ import * as z from "zod";
 // Icons
 import { Loader2, Eye, EyeOff, Lock, Mail, ArrowRight } from "lucide-react";
 
-
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,13 +50,13 @@ export default function LoginPage() {
   const [mosqueName, setMosqueName] = useState("Majidhul Haadhi");
 
   useEffect(() => {
-    fetch('/api/settings/app')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/settings/app")
+      .then((res) => res.json())
+      .then((data) => {
         if (data.logo) setLogoSrc(data.logo);
         if (data.mosqueName) setMosqueName(data.mosqueName);
       })
-      .catch(err => console.error("Failed to load branding", err));
+      .catch((err) => console.error("Failed to load branding", err));
   }, []);
 
   const form = useForm({
@@ -308,8 +307,6 @@ export default function LoginPage() {
                 </span>
               </div>
             </div>
-
-           
 
             <p className="px-8 text-center text-sm text-slate-500 mt-4">
               By clicking continue, you agree to our{" "}

@@ -6,10 +6,7 @@ import { motion } from "framer-motion"; // Added animations
 import { columns } from "@/components/members/columns";
 import { DataTable } from "@/components/general/data-table";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   PlusCircle,
@@ -70,7 +67,10 @@ const MemberBulkActions = ({ table }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+        <Button
+          variant="outline"
+          className="ml-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+        >
           Bulk Actions ({numSelected})
         </Button>
       </DropdownMenuTrigger>
@@ -78,7 +78,10 @@ const MemberBulkActions = ({ table }) => {
         <DropdownMenuItem onClick={handleDeactivate}>
           Mark as Inactive
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={handleDelete}>
+        <DropdownMenuItem
+          className="text-red-600 focus:text-red-600 focus:bg-red-50"
+          onClick={handleDelete}
+        >
           Delete Member
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -109,7 +112,9 @@ const MemberTableToolbar = ({ table, bulkActionsComponent }) => {
         <Select
           value={table.getColumn("paymentFrequency")?.getFilterValue() ?? ""}
           onValueChange={(value) => {
-            table.getColumn("paymentFrequency")?.setFilterValue(value === "all" ? undefined : value);
+            table
+              .getColumn("paymentFrequency")
+              ?.setFilterValue(value === "all" ? undefined : value);
           }}
         >
           <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200 focus:ring-emerald-500">
@@ -127,7 +132,9 @@ const MemberTableToolbar = ({ table, bulkActionsComponent }) => {
         <Select
           value={table.getColumn("status")?.getFilterValue() ?? ""}
           onValueChange={(value) => {
-            table.getColumn("status")?.setFilterValue(value === "all" ? undefined : value);
+            table
+              .getColumn("status")
+              ?.setFilterValue(value === "all" ? undefined : value);
           }}
         >
           <SelectTrigger className="w-[160px] bg-slate-50 border-slate-200 focus:ring-emerald-500">
@@ -196,22 +203,25 @@ export default function MembersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 relative">
-       {/* Background Pattern Overlay (Consistent with Dashboard) */}
-       <div
+      {/* Background Pattern Overlay (Consistent with Dashboard) */}
+      <div
         className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       ></div>
 
-      <motion.div 
+      <motion.div
         initial="hidden"
         animate="visible"
         variants={containerVariants}
         className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto"
       >
         {/* Header Section */}
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-between"
+        >
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               <Users className="h-8 w-8 text-emerald-600" />
@@ -222,7 +232,10 @@ export default function MembersPage() {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="outline" className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition-colors">
+            <Button
+              variant="outline"
+              className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition-colors"
+            >
               <Download className="h-4 w-4" />
               Export List
             </Button>
@@ -251,10 +264,10 @@ export default function MembersPage() {
                 table={table}
                 bulkActionsComponent={<MemberBulkActions table={table} />}
               />
-              
+
               {/* Data Table Component */}
               <div className="rounded-md border border-slate-100">
-                 <DataTable table={table} columns={columns} />
+                <DataTable table={table} columns={columns} />
               </div>
             </CardContent>
           </Card>

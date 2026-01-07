@@ -44,7 +44,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { JoinedDatePicker } from "./JoinedDatePicker";
 import { Badge } from "@/components/ui/badge";
 import { donationService } from "@/services/donationService";
@@ -60,10 +66,30 @@ const DEFAULT_MOSQUE_DETAILS = {
 };
 
 const fundTypes = [
-  { id: "General", name: "General Fund", icon: HandCoins, color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  { id: "Zakat", name: "Zakat Fund", icon: Users, color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "Building", name: "Building Fund", icon: HandCoins, color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { id: "Jummah", name: "Friday Collection", icon: Users, color: "bg-purple-100 text-purple-700 border-purple-200" },
+  {
+    id: "General",
+    name: "General Fund",
+    icon: HandCoins,
+    color: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  },
+  {
+    id: "Zakat",
+    name: "Zakat Fund",
+    icon: Users,
+    color: "bg-amber-100 text-amber-700 border-amber-200",
+  },
+  {
+    id: "Building",
+    name: "Building Fund",
+    icon: HandCoins,
+    color: "bg-blue-100 text-blue-700 border-blue-200",
+  },
+  {
+    id: "Jummah",
+    name: "Friday Collection",
+    icon: Users,
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
 ];
 
 // ... (keep other imports)
@@ -77,7 +103,10 @@ const ThermalReceipt = ({ data, settings }) => {
   const contact = settings?.phone || DEFAULT_MOSQUE_DETAILS.contact;
 
   return (
-    <div id="thermal-receipt" className="hidden print:block p-2 bg-white text-black font-mono text-sm leading-tight">
+    <div
+      id="thermal-receipt"
+      className="hidden print:block p-2 bg-white text-black font-mono text-sm leading-tight"
+    >
       <style jsx global>{`
         @media print {
           body * { visibility: hidden; }
@@ -93,7 +122,7 @@ const ThermalReceipt = ({ data, settings }) => {
           @page { margin: 0; size: auto; }
         }
       `}</style>
-      
+
       <div className="text-center mb-4">
         <h1 className="font-bold text-lg uppercase">{mosqueName}</h1>
         <p className="text-xs">{address}</p>
@@ -104,7 +133,12 @@ const ThermalReceipt = ({ data, settings }) => {
 
       <div className="flex justify-between text-xs mb-2">
         <span>{new Date().toLocaleDateString()}</span>
-        <span>{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        <span>
+          {new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
       </div>
       <div className="text-xs mb-2">
         <span>Ref: #{data.id.toString().slice(-6)}</span>
@@ -117,15 +151,15 @@ const ThermalReceipt = ({ data, settings }) => {
           <span className="font-bold">Donor:</span>
           <span className="text-right">{data.name}</span>
         </div>
-        {data.type === 'member' && (
-           <div className="flex justify-between mb-1 text-xs">
-             <span>ID:</span>
-             <span>{data.memberId}</span>
-           </div>
+        {data.type === "member" && (
+          <div className="flex justify-between mb-1 text-xs">
+            <span>ID:</span>
+            <span>{data.memberId}</span>
+          </div>
         )}
         <div className="flex justify-between mb-1">
           <span>Fund:</span>
-          <span>{fundTypes.find(f => f.id === data.purpose)?.name}</span>
+          <span>{fundTypes.find((f) => f.id === data.purpose)?.name}</span>
         </div>
       </div>
 
@@ -133,7 +167,9 @@ const ThermalReceipt = ({ data, settings }) => {
 
       <div className="flex justify-between items-center my-4">
         <span className="font-bold text-lg">TOTAL</span>
-        <span className="font-bold text-xl">Rs. {Number(data.amount).toLocaleString()}</span>
+        <span className="font-bold text-xl">
+          Rs. {Number(data.amount).toLocaleString()}
+        </span>
       </div>
 
       <div className="border-b border-dashed border-black my-4" />
@@ -141,8 +177,8 @@ const ThermalReceipt = ({ data, settings }) => {
       <div className="text-center text-xs space-y-4 mt-6">
         <p>"May Allah accept your deeds."</p>
         <div className="mt-4 pt-2 border-t border-dashed border-black/50 opacity-70">
-            <p className="font-semibold">Product of Inzeedo</p>
-            <p>Contact number 0785706441</p>
+          <p className="font-semibold">Product of Inzeedo</p>
+          <p>Contact number 0785706441</p>
         </div>
       </div>
     </div>
@@ -169,32 +205,32 @@ export default function DonationEntryWithPrint({ initialData }) {
   const [openMemberSearch, setOpenMemberSearch] = useState(false);
   const [members, setMembers] = useState([]); // Real members state
   const [appSettings, setAppSettings] = useState(null);
-  
+
   // Donor Selection State
   const [donors, setDonors] = useState([]);
   const [openDonorSearch, setOpenDonorSearch] = useState(false);
   const [isDonorFormOpen, setIsDonorFormOpen] = useState(false);
-  
-  const guestInputRef = useRef(null); 
+
+  const guestInputRef = useRef(null);
   const isEditMode = !!initialData;
 
   // Fetch data on mount
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const [membersData, settingsData, donorsData] = await Promise.all([
-                  memberService.getAll(),
-                  fetch('/api/settings/app').then(res => res.json()),
-                  donorService.getAll()
-              ]);
-              setMembers(membersData);
-              setAppSettings(settingsData);
-              setDonors(donorsData);
-          } catch (error) {
-              console.error("Failed to fetch data", error);
-          }
-      };
-      fetchData();
+    const fetchData = async () => {
+      try {
+        const [membersData, settingsData, donorsData] = await Promise.all([
+          memberService.getAll(),
+          fetch("/api/settings/app").then((res) => res.json()),
+          donorService.getAll(),
+        ]);
+        setMembers(membersData);
+        setAppSettings(settingsData);
+        setDonors(donorsData);
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+      }
+    };
+    fetchData();
   }, []);
 
   const form = useForm({
@@ -208,7 +244,7 @@ export default function DonationEntryWithPrint({ initialData }) {
       purpose: initialData?.purpose || "General",
       paymentMethod: initialData?.paymentMethod || "Cash",
       isAnonymous: initialData?.isAnonymous || false,
-      autoPrint: false, 
+      autoPrint: false,
     },
   });
 
@@ -232,73 +268,76 @@ export default function DonationEntryWithPrint({ initialData }) {
   async function onSubmit(data) {
     let displayName = "Anonymous";
     if (!data.isAnonymous) {
-        if (data.donorType === "member") {
-            const member = members.find(m => m.id === data.memberId);
-            displayName = member ? member.name : "Unknown Member";
-        } else {
-            displayName = data.donorName || "Guest";
-        }
+      if (data.donorType === "member") {
+        const member = members.find((m) => m.id === data.memberId);
+        displayName = member ? member.name : "Unknown Member";
+      } else {
+        displayName = data.donorName || "Guest";
+      }
     }
 
     try {
-        let newEntry;
-        if (isEditMode) {
-            newEntry = await donationService.update(initialData.id, {
-                amount: data.amount,
-                date: data.date,
-                purpose: data.purpose,
-                paymentMethod: data.paymentMethod,
-                isAnonymous: data.isAnonymous,
-                donorType: data.donorType,
-                donorName: data.donorName,
-                memberId: data.memberId,
-            });
-            toast.success("Donation Updated Successfully");
-        } else {
-            newEntry = await donationService.create({
-                amount: data.amount,
-                date: data.date,
-                purpose: data.purpose,
-                paymentMethod: data.paymentMethod,
-                isAnonymous: data.isAnonymous,
-                donorType: data.donorType,
-                donorName: data.donorName,
-                memberId: data.memberId,
-                donorId: data.donorId,
-                // bankAccountId: selectedBankAccountId // TODO: Add bank account selector if needed
-            });
-            toast.success("Saved Successfully");
-        }
-
-        // Add display fields for UI
-        const entryForUI = {
-            ...newEntry,
-            name: displayName,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: data.donorType
-        };
-
-        setRecentEntries([entryForUI, ...recentEntries]);
-        toast.success("Saved Successfully");
-
-        if (data.autoPrint) {
-            triggerPrint(entryForUI);
-        }
-
-        form.reset({
-            ...data,
-            amount: "",
-            memberId: "",
-            donorName: "",
-            isAnonymous: false,
+      let newEntry;
+      if (isEditMode) {
+        newEntry = await donationService.update(initialData.id, {
+          amount: data.amount,
+          date: data.date,
+          purpose: data.purpose,
+          paymentMethod: data.paymentMethod,
+          isAnonymous: data.isAnonymous,
+          donorType: data.donorType,
+          donorName: data.donorName,
+          memberId: data.memberId,
         });
+        toast.success("Donation Updated Successfully");
+      } else {
+        newEntry = await donationService.create({
+          amount: data.amount,
+          date: data.date,
+          purpose: data.purpose,
+          paymentMethod: data.paymentMethod,
+          isAnonymous: data.isAnonymous,
+          donorType: data.donorType,
+          donorName: data.donorName,
+          memberId: data.memberId,
+          donorId: data.donorId,
+          // bankAccountId: selectedBankAccountId // TODO: Add bank account selector if needed
+        });
+        toast.success("Saved Successfully");
+      }
 
-        if (data.donorType === "guest") {
-            setTimeout(() => guestInputRef.current?.focus(), 100);
-        }
+      // Add display fields for UI
+      const entryForUI = {
+        ...newEntry,
+        name: displayName,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        type: data.donorType,
+      };
+
+      setRecentEntries([entryForUI, ...recentEntries]);
+      toast.success("Saved Successfully");
+
+      if (data.autoPrint) {
+        triggerPrint(entryForUI);
+      }
+
+      form.reset({
+        ...data,
+        amount: "",
+        memberId: "",
+        donorName: "",
+        isAnonymous: false,
+      });
+
+      if (data.donorType === "guest") {
+        setTimeout(() => guestInputRef.current?.focus(), 100);
+      }
     } catch (error) {
-        console.error("Error saving donation:", error);
-        toast.error("Failed to save donation");
+      console.error("Error saving donation:", error);
+      toast.error("Failed to save donation");
     }
   }
 
@@ -307,37 +346,41 @@ export default function DonationEntryWithPrint({ initialData }) {
       <ThermalReceipt data={printData} settings={appSettings} />
 
       <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-        
         {/* LEFT COLUMN: Entry Form */}
         <div className="lg:col-span-2 space-y-4">
-          
           {/* 1. START FORM CONTEXT HERE - Covers Header AND Card */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-
               {/* Header with Auto-Print Switch */}
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                    <div className="p-2 bg-emerald-600 rounded-lg text-white">
-                        <HandCoins className="w-5 h-5" />
-                    </div>
-                    {isEditMode ? "Edit Donation" : "Donation Entry"}
+                  <div className="p-2 bg-emerald-600 rounded-lg text-white">
+                    <HandCoins className="w-5 h-5" />
+                  </div>
+                  {isEditMode ? "Edit Donation" : "Donation Entry"}
                 </h2>
                 <div className="flex items-center gap-2">
-                    <FormField
-                        control={form.control}
-                        name="autoPrint"
-                        render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2 space-y-0 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-                                <FormControl>
-                                    <Switch checked={field.value} onCheckedChange={field.onChange} id="autoprint" />
-                                </FormControl>
-                                <FormLabel htmlFor="autoprint" className="text-xs font-medium text-slate-600 cursor-pointer flex items-center gap-1">
-                                    <Printer className="w-3 h-3" /> Auto-Print
-                                </FormLabel>
-                            </FormItem>
-                        )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="autoPrint"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            id="autoprint"
+                          />
+                        </FormControl>
+                        <FormLabel
+                          htmlFor="autoprint"
+                          className="text-xs font-medium text-slate-600 cursor-pointer flex items-center gap-1"
+                        >
+                          <Printer className="w-3 h-3" /> Auto-Print
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 
@@ -345,211 +388,302 @@ export default function DonationEntryWithPrint({ initialData }) {
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 {/* Fund Selector */}
                 <div className="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {fundTypes.map((type) => (
-                        <button
-                            key={type.id}
-                            type="button"
-                            onClick={() => form.setValue("purpose", type.id)}
-                            className={`flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium transition-all border-2
-                            ${currentPurpose === type.id 
-                                ? `${type.color} border-current shadow-sm` 
-                                : "bg-white text-slate-500 border-transparent hover:bg-slate-100"}`}
-                        >
-                            <type.icon className="w-4 h-4" />
-                            {type.name}
-                        </button>
-                    ))}
+                  {fundTypes.map((type) => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => form.setValue("purpose", type.id)}
+                      className={`flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium transition-all border-2
+                            ${
+                              currentPurpose === type.id
+                                ? `${type.color} border-current shadow-sm`
+                                : "bg-white text-slate-500 border-transparent hover:bg-slate-100"
+                            }`}
+                    >
+                      <type.icon className="w-4 h-4" />
+                      {type.name}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="p-6 space-y-6">
-                    {/* Amount & Date */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <FormField
-                            control={form.control}
-                            name="amount"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel className="text-slate-700 font-semibold">Amount (LKR)</FormLabel>
-                                <FormControl>
-                                    <div className="relative group">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xl group-focus-within:text-emerald-600">Rs.</span>
-                                        <Input 
-                                            type="number" 
-                                            placeholder="0.00" 
-                                            className="pl-12 h-16 text-3xl font-bold text-slate-900 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:bg-white transition-all" 
-                                            autoFocus
-                                            {...field} 
-                                        />
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-1 gap-4">
-                             <FormField
-                                control={form.control}
-                                name="paymentMethod"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel className="text-slate-600">Method</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                        <SelectTrigger className="bg-white border-slate-200 h-10 w-full">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Cash">Cash</SelectItem>
-                                            <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                                            <SelectItem value="Cheque">Cheque</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                  {/* Amount & Date */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-semibold">
+                            Amount (LKR)
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative group">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xl group-focus-within:text-emerald-600">
+                                Rs.
+                              </span>
+                              <Input
+                                type="number"
+                                placeholder="0.00"
+                                className="pl-12 h-16 text-3xl font-bold text-slate-900 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:bg-white transition-all"
+                                autoFocus
+                                {...field}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="paymentMethod"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-600">
+                              Method
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="bg-white border-slate-200 h-10 w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Cash">Cash</SelectItem>
+                                <SelectItem value="Bank Transfer">
+                                  Bank Transfer
+                                </SelectItem>
+                                <SelectItem value="Cheque">Cheque</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
                     </div>
+                  </div>
 
-                    <div className="h-px bg-slate-100" />
+                  <div className="h-px bg-slate-100" />
 
-                    {/* Donor Type Tabs */}
-                    <Tabs value={donorType} onValueChange={(v) => form.setValue("donorType", v)} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-4">
-                            <TabsTrigger value="guest">Guest / Outside</TabsTrigger>
-                            <TabsTrigger value="member">Registered Member</TabsTrigger>
-                        </TabsList>
-                        
-                        <div className={`p-4 rounded-xl border border-slate-100 bg-slate-50/50`}>
-                            {/* Member Search */}
-                            {donorType === "member" && (
-                                <FormField
-                                    control={form.control}
-                                    name="memberId"
-                                    render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <Popover open={openMemberSearch} onOpenChange={setOpenMemberSearch}>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                            <Button variant="outline" role="combobox" className={cn("w-full justify-between h-12 text-base bg-white", !field.value && "text-muted-foreground")}>
-                                                {field.value ? members.find((m) => m.id === field.value)?.name : "Select member..."}
-                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[400px] p-0">
-                                            <Command>
-                                            <CommandInput placeholder="Search member..." />
-                                            <CommandList>
-                                                <CommandEmpty>No member found.</CommandEmpty>
-                                                <CommandGroup>
-                                                {members.map((member) => (
-                                                    <CommandItem 
-                                                        value={`${member.name} ${member.contact || member.phone || ''}`} 
-                                                        key={member.id} 
-                                                        onSelect={() => { form.setValue("memberId", member.id); setOpenMemberSearch(false); }}
-                                                    >
-                                                    <Check className={cn("mr-2 h-4 w-4", member.id === field.value ? "opacity-100" : "opacity-0")} />
-                                                    <div className="flex flex-col">
-                                                        <span>{member.name}</span>
-                                                        <span className="text-xs text-muted-foreground">{member.contact || member.phone}</span>
-                                                    </div>
-                                                    </CommandItem>
-                                                ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                    </FormItem>
-                                    )}
-                                />
-                            )}
+                  {/* Donor Type Tabs */}
+                  <Tabs
+                    value={donorType}
+                    onValueChange={(v) => form.setValue("donorType", v)}
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="guest">Guest / Outside</TabsTrigger>
+                      <TabsTrigger value="member">
+                        Registered Member
+                      </TabsTrigger>
+                    </TabsList>
 
-                            {/* Guest Inputs */}
-                            {donorType === "guest" && (
-                                 <FormField
-                                    control={form.control}
-                                    name="donorName"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                        <FormLabel>Guest Name</FormLabel>
-                                        <div className="relative">
-                                            <FormControl>
-                                                <Input 
-                                                    placeholder="Guest Name" 
-                                                    className="bg-white h-11" 
-                                                    {...field} 
-                                                    ref={guestInputRef} 
-                                                    onChange={(e) => {
-                                                        field.onChange(e);
-                                                        setOpenDonorSearch(true);
-                                                    }}
-                                                    onFocus={() => setOpenDonorSearch(true)}
-                                                    onBlur={() => setTimeout(() => setOpenDonorSearch(false), 200)}
-                                                />
-                                            </FormControl>
-                                            
-                                            {/* Donor Search Dropdown */}
-                                            {openDonorSearch && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                                                    <div 
-                                                        className="p-2 hover:bg-emerald-50 cursor-pointer text-emerald-600 font-medium flex items-center gap-2 border-b"
-                                                        onMouseDown={(e) => {
-                                                            e.preventDefault(); // Prevent blur
-                                                            setIsDonorFormOpen(true);
-                                                            setOpenDonorSearch(false);
-                                                        }}
-                                                    >
-                                                        <UserPlus className="w-4 h-4" /> Add New Donor
-                                                    </div>
-                                                    {donors
-                                                    .filter(d => d.name.toLowerCase().includes((field.value || "").toLowerCase()))
-                                                    .map(donor => (
-                                                        <div
-                                                        key={donor.id}
-                                                        className="p-2 hover:bg-slate-50 cursor-pointer border-b last:border-0"
-                                                        onMouseDown={(e) => {
-                                                            e.preventDefault(); // Prevent blur
-                                                            handleDonorSelect(donor);
-                                                        }}
-                                                        >
-                                                        <div className="font-medium text-sm">{donor.name}</div>
-                                                        {donor.contact && <div className="text-xs text-slate-500">{donor.contact}</div>}
-                                                        </div>
-                                                    ))}
-                                                    {donors.filter(d => d.name.toLowerCase().includes((field.value || "").toLowerCase())).length === 0 && (
-                                                        <div className="p-2 text-xs text-slate-400 text-center">No existing donors found</div>
-                                                    )}
-                                                </div>
-                                            )}
+                    <div
+                      className={`p-4 rounded-xl border border-slate-100 bg-slate-50/50`}
+                    >
+                      {/* Member Search */}
+                      {donorType === "member" && (
+                        <FormField
+                          control={form.control}
+                          name="memberId"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <Popover
+                                open={openMemberSearch}
+                                onOpenChange={setOpenMemberSearch}
+                              >
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className={cn(
+                                        "w-full justify-between h-12 text-base bg-white",
+                                        !field.value && "text-muted-foreground",
+                                      )}
+                                    >
+                                      {field.value
+                                        ? members.find(
+                                            (m) => m.id === field.value,
+                                          )?.name
+                                        : "Select member..."}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[400px] p-0">
+                                  <Command>
+                                    <CommandInput placeholder="Search member..." />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        No member found.
+                                      </CommandEmpty>
+                                      <CommandGroup>
+                                        {members.map((member) => (
+                                          <CommandItem
+                                            value={`${member.name} ${member.contact || member.phone || ""}`}
+                                            key={member.id}
+                                            onSelect={() => {
+                                              form.setValue(
+                                                "memberId",
+                                                member.id,
+                                              );
+                                              setOpenMemberSearch(false);
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                member.id === field.value
+                                                  ? "opacity-100"
+                                                  : "opacity-0",
+                                              )}
+                                            />
+                                            <div className="flex flex-col">
+                                              <span>{member.name}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {member.contact || member.phone}
+                                              </span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Guest Inputs */}
+                      {donorType === "guest" && (
+                        <FormField
+                          control={form.control}
+                          name="donorName"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Guest Name</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    placeholder="Guest Name"
+                                    className="bg-white h-11"
+                                    {...field}
+                                    ref={guestInputRef}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                      setOpenDonorSearch(true);
+                                    }}
+                                    onFocus={() => setOpenDonorSearch(true)}
+                                    onBlur={() =>
+                                      setTimeout(
+                                        () => setOpenDonorSearch(false),
+                                        200,
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+
+                                {/* Donor Search Dropdown */}
+                                {openDonorSearch && (
+                                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                                    <div
+                                      className="p-2 hover:bg-emerald-50 cursor-pointer text-emerald-600 font-medium flex items-center gap-2 border-b"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault(); // Prevent blur
+                                        setIsDonorFormOpen(true);
+                                        setOpenDonorSearch(false);
+                                      }}
+                                    >
+                                      <UserPlus className="w-4 h-4" /> Add New
+                                      Donor
+                                    </div>
+                                    {donors
+                                      .filter((d) =>
+                                        d.name
+                                          .toLowerCase()
+                                          .includes(
+                                            (field.value || "").toLowerCase(),
+                                          ),
+                                      )
+                                      .map((donor) => (
+                                        <div
+                                          key={donor.id}
+                                          className="p-2 hover:bg-slate-50 cursor-pointer border-b last:border-0"
+                                          onMouseDown={(e) => {
+                                            e.preventDefault(); // Prevent blur
+                                            handleDonorSelect(donor);
+                                          }}
+                                        >
+                                          <div className="font-medium text-sm">
+                                            {donor.name}
+                                          </div>
+                                          {donor.contact && (
+                                            <div className="text-xs text-slate-500">
+                                              {donor.contact}
+                                            </div>
+                                          )}
                                         </div>
-                                        <FormMessage />
-                                        </FormItem>
+                                      ))}
+                                    {donors.filter((d) =>
+                                      d.name
+                                        .toLowerCase()
+                                        .includes(
+                                          (field.value || "").toLowerCase(),
+                                        ),
+                                    ).length === 0 && (
+                                      <div className="p-2 text-xs text-slate-400 text-center">
+                                        No existing donors found
+                                      </div>
                                     )}
-                                />
-                            )}
-                            
-                            <FormField
-                                control={form.control}
-                                name="isAnonymous"
-                                render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-2 mt-4">
-                                        <FormControl>
-                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                        <FormLabel className="text-sm text-slate-600 font-normal">Mark as Anonymous Donation</FormLabel>
-                                    </FormItem>
+                                  </div>
                                 )}
-                            />
-                        </div>
-                    </Tabs>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
-                    <Button type="submit" size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-md shadow-emerald-100 h-14">
-                        <Save className="w-5 h-5 mr-2" /> 
-                        {isEditMode ? 'Update Donation' : (autoPrint ? 'Save & Print' : 'Save & Next')}
-                    </Button>
+                      <FormField
+                        control={form.control}
+                        name="isAnonymous"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2 mt-4">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm text-slate-600 font-normal">
+                              Mark as Anonymous Donation
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Tabs>
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-md shadow-emerald-100 h-14"
+                  >
+                    <Save className="w-5 h-5 mr-2" />
+                    {isEditMode
+                      ? "Update Donation"
+                      : autoPrint
+                        ? "Save & Print"
+                        : "Save & Next"}
+                  </Button>
                 </div>
               </div>
             </form>
@@ -558,63 +692,74 @@ export default function DonationEntryWithPrint({ initialData }) {
 
         {/* RIGHT COLUMN: History */}
         <div className="space-y-4">
-             <div className="flex items-center justify-between h-9">
-                <h3 className="font-semibold text-slate-500 flex items-center gap-2">
-                    <History className="w-4 h-4" /> Recent Activity
-                </h3>
-             </div>
+          <div className="flex items-center justify-between h-9">
+            <h3 className="font-semibold text-slate-500 flex items-center gap-2">
+              <History className="w-4 h-4" /> Recent Activity
+            </h3>
+          </div>
 
-             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 min-h-[400px]">
-                {recentEntries.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2 opacity-60">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                            <HandCoins className="w-6 h-6" />
-                        </div>
-                        <p className="text-sm">No entries this session</p>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                         <AnimatePresence>
-                            {recentEntries.map((entry) => (
-                                <motion.div 
-                                    key={entry.id}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="p-3 rounded-lg border border-slate-100 bg-slate-50 relative overflow-hidden group hover:bg-white hover:shadow-md transition-all"
-                                >
-                                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${entry.type === 'member' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
-                                    
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="font-bold text-slate-800">Rs. {entry.amount}</span>
-                                        <span className="text-xs text-slate-400">{entry.time}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-slate-600 truncate max-w-[120px]">{entry.name}</span>
-                                        <Badge variant="outline" className="text-[10px] px-1.5 h-5 border-slate-200 text-slate-500">
-                                            {fundTypes.find(f => f.id === entry.purpose)?.name || entry.purpose}
-                                        </Badge>
-                                    </div>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 min-h-[400px]">
+            {recentEntries.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2 opacity-60">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                  <HandCoins className="w-6 h-6" />
+                </div>
+                <p className="text-sm">No entries this session</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <AnimatePresence>
+                  {recentEntries.map((entry) => (
+                    <motion.div
+                      key={entry.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="p-3 rounded-lg border border-slate-100 bg-slate-50 relative overflow-hidden group hover:bg-white hover:shadow-md transition-all"
+                    >
+                      <div
+                        className={`absolute left-0 top-0 bottom-0 w-1 ${entry.type === "member" ? "bg-emerald-500" : "bg-blue-500"}`}
+                      />
 
-                                    {/* Actions */}
-                                    <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button 
-                                            size="icon" 
-                                            variant="ghost" 
-                                            className="h-7 w-7 bg-white shadow-sm text-slate-500 hover:text-emerald-600"
-                                            onClick={() => triggerPrint(entry)}
-                                            title="Print Thermal Receipt"
-                                        >
-                                            <Printer className="w-3.5 h-3.5" />
-                                        </Button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                         </AnimatePresence>
-                    </div>
-                )}
-             </div>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-slate-800">
+                          Rs. {entry.amount}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {entry.time}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 truncate max-w-[120px]">
+                          {entry.name}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-1.5 h-5 border-slate-200 text-slate-500"
+                        >
+                          {fundTypes.find((f) => f.id === entry.purpose)
+                            ?.name || entry.purpose}
+                        </Badge>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 bg-white shadow-sm text-slate-500 hover:text-emerald-600"
+                          onClick={() => triggerPrint(entry)}
+                          title="Print Thermal Receipt"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
         </div>
-
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ function TabsList({ className, ...props }) {
       className={cn(
         // Creates the bottom border line for the list
         "inline-flex h-10 items-center justify-start border-b border-gray-200 dark:border-gray-700 p-0 text-muted-foreground",
-        className
+        className,
       )}
       {...props}
     />
@@ -53,7 +53,7 @@ function TabsTrigger({ className, ...props }) {
         // Active state (the blue-600 underline)
         "data-[state=active]:text-blue-600 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-500 dark:data-[state=active]:border-blue-500",
         "data-[state=active]:font-semibold",
-        className
+        className,
       )}
       {...props}
     />
@@ -67,7 +67,7 @@ function TabsContent({ className, ...props }) {
       className={cn(
         "flex-1 outline-none mt-4", // Added margin-top for content spacing
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className
+        className,
       )}
       {...props}
     />

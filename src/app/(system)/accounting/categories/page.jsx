@@ -13,7 +13,7 @@ import {
   Filter,
   CheckSquare,
   Archive,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 // UI Imports
@@ -35,7 +35,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -54,7 +54,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { DataTable } from "@/components/general/data-table"; 
+import { DataTable } from "@/components/general/data-table";
 import { Progress } from "@/components/ui/progress";
 
 import { categoryService } from "@/services/categoryService";
@@ -64,18 +64,48 @@ import { AccountingSkeleton } from "@/components/accounting/AccountingSkeleton";
 // --- MOCK DATA REMOVED ---
 
 const colorOptions = [
-  { value: "emerald", label: "Emerald Green", bg: "bg-emerald-100", text: "text-emerald-700" },
-  { value: "blue", label: "Royal Blue", bg: "bg-blue-100", text: "text-blue-700" },
-  { value: "amber", label: "Amber / Warning", bg: "bg-amber-100", text: "text-amber-700" },
-  { value: "purple", label: "Purple", bg: "bg-purple-100", text: "text-purple-700" },
-  { value: "rose", label: "Rose Red", bg: "bg-rose-100", text: "text-rose-700" },
-  { value: "slate", label: "Slate Grey", bg: "bg-slate-100", text: "text-slate-700" },
+  {
+    value: "emerald",
+    label: "Emerald Green",
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
+  },
+  {
+    value: "blue",
+    label: "Royal Blue",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+  },
+  {
+    value: "amber",
+    label: "Amber / Warning",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+  },
+  {
+    value: "purple",
+    label: "Purple",
+    bg: "bg-purple-100",
+    text: "text-purple-700",
+  },
+  {
+    value: "rose",
+    label: "Rose Red",
+    bg: "bg-rose-100",
+    text: "text-rose-700",
+  },
+  {
+    value: "slate",
+    label: "Slate Grey",
+    bg: "bg-slate-100",
+    text: "text-slate-700",
+  },
 ];
 
 // --- 2. HEADER COMPONENT ---
 const DataTableColumnHeader = ({ column, title, className }) => {
   if (!column.getCanSort()) {
-    return <div className={className}>{title}</div>
+    return <div className={className}>{title}</div>;
   }
   return (
     <Button
@@ -93,8 +123,8 @@ const DataTableColumnHeader = ({ column, title, className }) => {
         <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
       )}
     </Button>
-  )
-}
+  );
+};
 
 // --- 3. DIALOG COMPONENT ---
 const CategoryDialog = ({ open, onOpenChange, initialData, onSuccess }) => {
@@ -104,42 +134,48 @@ const CategoryDialog = ({ open, onOpenChange, initialData, onSuccess }) => {
     description: "",
     color: "emerald",
     budget_limit: "",
-    status: "Active"
+    status: "Active",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load initial data when editing
   useState(() => {
     if (initialData) {
-        setFormData({
-            name: initialData.name,
-            description: initialData.description || "",
-            color: initialData.color || "emerald",
-            budget_limit: initialData.budgetLimit || "",
-            status: initialData.status
-        });
+      setFormData({
+        name: initialData.name,
+        description: initialData.description || "",
+        color: initialData.color || "emerald",
+        budget_limit: initialData.budgetLimit || "",
+        status: initialData.status,
+      });
     } else {
-        setFormData({ name: "", description: "", color: "emerald", budget_limit: "", status: "Active" });
+      setFormData({
+        name: "",
+        description: "",
+        color: "emerald",
+        budget_limit: "",
+        status: "Active",
+      });
     }
   }, [initialData, open]);
 
   const handleSubmit = async () => {
     try {
-        setIsSubmitting(true);
-        if (isEditMode) {
-            await categoryService.update(initialData.id, formData);
-            toast.success("Category updated successfully");
-        } else {
-            await categoryService.create(formData);
-            toast.success("Category created successfully");
-        }
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
+      setIsSubmitting(true);
+      if (isEditMode) {
+        await categoryService.update(initialData.id, formData);
+        toast.success("Category updated successfully");
+      } else {
+        await categoryService.create(formData);
+        toast.success("Category created successfully");
+      }
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
-        console.error("Error saving category:", error);
-        toast.error("Failed to save category");
+      console.error("Error saving category:", error);
+      toast.error("Failed to save category");
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -148,98 +184,132 @@ const CategoryDialog = ({ open, onOpenChange, initialData, onSuccess }) => {
       <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-slate-100 bg-white">
           <DialogTitle className="flex items-center gap-2 text-xl">
-             <div className="p-2 bg-emerald-100 rounded-lg">
-                <Tags className="w-5 h-5 text-emerald-600" />
-             </div>
-             {isEditMode ? "Edit Category" : "Add New Category"}
+            <div className="p-2 bg-emerald-100 rounded-lg">
+              <Tags className="w-5 h-5 text-emerald-600" />
+            </div>
+            {isEditMode ? "Edit Category" : "Add New Category"}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode ? "Modify account details and limits." : "Define a new bucket for tracking expenses."}
+            {isEditMode
+              ? "Modify account details and limits."
+              : "Define a new bucket for tracking expenses."}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="p-6 overflow-y-auto max-h-[65vh]">
-            <div className="grid gap-4">
-                <div className="space-y-2">
-                    <Label>Category Name</Label>
-                    <Input 
-                        value={formData.name} 
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        placeholder="e.g. Transport" 
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Color Code</Label>
-                    <Select value={formData.color} onValueChange={(v) => setFormData({...formData, color: v})}>
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {colorOptions.map(c => (
-                                <SelectItem key={c.value} value={c.value}>
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${c.bg.replace("100", "500")}`} />
-                                        {c.label}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Monthly Budget Limit (LKR)</Label>
-                    <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold">Rs.</span>
-                        <Input 
-                            type="number" 
-                            className="pl-10 font-bold" 
-                            value={formData.budget_limit} 
-                            onChange={(e) => setFormData({...formData, budget_limit: e.target.value})}
-                            placeholder="0.00" 
-                        />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea 
-                        value={formData.description} 
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        placeholder="What kind of expenses go here?" 
-                        className="resize-none h-20" 
-                    />
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
-                    <div className="space-y-0.5">
-                        <Label className="text-base">Active Status</Label>
-                        <p className="text-xs text-slate-500">Enable this category in forms</p>
-                    </div>
-                    <Switch 
-                        checked={formData.status === "Active"} 
-                        onCheckedChange={(checked) => setFormData({...formData, status: checked ? "Active" : "Inactive"})}
-                    />
-                </div>
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label>Category Name</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="e.g. Transport"
+              />
             </div>
+
+            <div className="space-y-2">
+              <Label>Color Code</Label>
+              <Select
+                value={formData.color}
+                onValueChange={(v) => setFormData({ ...formData, color: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {colorOptions.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${c.bg.replace("100", "500")}`}
+                        />
+                        {c.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Monthly Budget Limit (LKR)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-slate-400 font-bold">
+                  Rs.
+                </span>
+                <Input
+                  type="number"
+                  className="pl-10 font-bold"
+                  value={formData.budget_limit}
+                  onChange={(e) =>
+                    setFormData({ ...formData, budget_limit: e.target.value })
+                  }
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="What kind of expenses go here?"
+                className="resize-none h-20"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+              <div className="space-y-0.5">
+                <Label className="text-base">Active Status</Label>
+                <p className="text-xs text-slate-500">
+                  Enable this category in forms
+                </p>
+              </div>
+              <Switch
+                checked={formData.status === "Active"}
+                onCheckedChange={(checked) =>
+                  setFormData({
+                    ...formData,
+                    status: checked ? "Active" : "Inactive",
+                  })
+                }
+              />
+            </div>
+          </div>
         </div>
 
         <DialogFooter className="p-6 pt-4 border-t border-slate-100 bg-slate-50 sm:justify-between items-center">
-            <div className="hidden sm:block"></div>
-            <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">Cancel</Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1 sm:flex-none" onClick={handleSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {isEditMode ? "Updating..." : "Saving..."}
-                        </>
-                    ) : (
-                        isEditMode ? "Update Category" : "Save Category"
-                    )}
-                </Button>
-            </div>
+          <div className="hidden sm:block"></div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 flex-1 sm:flex-none"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {isEditMode ? "Updating..." : "Saving..."}
+                </>
+              ) : isEditMode ? (
+                "Update Category"
+              ) : (
+                "Save Category"
+              )}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -251,7 +321,7 @@ export default function ExpenseCategoriesPage() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [rowSelection, setRowSelection] = useState({}); // New State for Selection
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -259,14 +329,14 @@ export default function ExpenseCategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-        setLoading(true);
-        const data = await categoryService.getAll();
-        setCategories(data);
+      setLoading(true);
+      const data = await categoryService.getAll();
+      setCategories(data);
     } catch (error) {
-        console.error("Error fetching categories:", error);
-        toast.error("Failed to load categories");
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -285,118 +355,158 @@ export default function ExpenseCategoriesPage() {
   };
 
   const handleDelete = async (id) => {
-      if (confirm("Are you sure you want to delete this category?")) {
-          try {
-              await categoryService.delete(id);
-              toast.success("Category deleted");
-              fetchCategories();
-          } catch (error) {
-              console.error("Error deleting category:", error);
-              toast.error("Failed to delete category");
-          }
+    if (confirm("Are you sure you want to delete this category?")) {
+      try {
+        await categoryService.delete(id);
+        toast.success("Category deleted");
+        fetchCategories();
+      } catch (error) {
+        console.error("Error deleting category:", error);
+        toast.error("Failed to delete category");
       }
+    }
   };
 
   const handleDeleteSelected = () => {
-     // Logic to delete selected rows
-     console.log("Deleting rows:", Object.keys(rowSelection));
-     setRowSelection({});
+    // Logic to delete selected rows
+    console.log("Deleting rows:", Object.keys(rowSelection));
+    setRowSelection({});
   };
 
   // -- COLUMNS --
-  const columns = useMemo(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
+  const columns = useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
         accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Category Name" />,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Category Name" />
+        ),
         cell: ({ row }) => {
-        const color = colorOptions.find(c => c.value === row.original.color) || colorOptions[0];
-        return (
+          const color =
+            colorOptions.find((c) => c.value === row.original.color) ||
+            colorOptions[0];
+          return (
             <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${color.bg.replace("bg-", "bg-").replace("100", "500")}`} />
-                <div>
-                    <div className="font-medium text-slate-900">{row.getValue("name")}</div>
-                    <div className="text-xs text-slate-500 truncate max-w-[250px]">{row.original.description}</div>
+              <div
+                className={`w-3 h-3 rounded-full ${color.bg.replace("bg-", "bg-").replace("100", "500")}`}
+              />
+              <div>
+                <div className="font-medium text-slate-900">
+                  {row.getValue("name")}
                 </div>
+                <div className="text-xs text-slate-500 truncate max-w-[250px]">
+                  {row.original.description}
+                </div>
+              </div>
             </div>
-        );
+          );
         },
-    },
-    {
+      },
+      {
         accessorKey: "budgetLimit",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Budget Usage" />,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Budget Usage" />
+        ),
         cell: ({ row }) => {
-            const limit = row.original.budgetLimit || 0;
-            const spent = row.original.current_spend || 0;
-            const percentage = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
-            
-            let progressColor = "bg-emerald-500";
-            if(percentage > 75) progressColor = "bg-amber-500";
-            if(percentage > 90) progressColor = "bg-rose-500";
+          const limit = row.original.budgetLimit || 0;
+          const spent = row.original.current_spend || 0;
+          const percentage =
+            limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
 
-            return (
-                <div className="w-[180px] space-y-1">
-                    <div className="flex justify-between text-xs font-medium">
-                        <span className="text-slate-700">Rs. {spent.toLocaleString()}</span>
-                        <span className="text-slate-400"> / {limit.toLocaleString()}</span>
-                    </div>
-                    <Progress value={percentage} className="h-1.5 bg-slate-100" indicatorClassName={progressColor} />
-                </div>
-            )
-        }
-    },
-    {
+          let progressColor = "bg-emerald-500";
+          if (percentage > 75) progressColor = "bg-amber-500";
+          if (percentage > 90) progressColor = "bg-rose-500";
+
+          return (
+            <div className="w-[180px] space-y-1">
+              <div className="flex justify-between text-xs font-medium">
+                <span className="text-slate-700">
+                  Rs. {spent.toLocaleString()}
+                </span>
+                <span className="text-slate-400">
+                  {" "}
+                  / {limit.toLocaleString()}
+                </span>
+              </div>
+              <Progress
+                value={percentage}
+                className="h-1.5 bg-slate-100"
+                indicatorClassName={progressColor}
+              />
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-        const s = row.getValue("status");
-        return (
-            <Badge variant="outline" className={s === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500"}>
-            {s}
+          const s = row.getValue("status");
+          return (
+            <Badge
+              variant="outline"
+              className={
+                s === "Active"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-slate-100 text-slate-500"
+              }
+            >
+              {s}
             </Badge>
-        );
+          );
         },
-    },
-    {
+      },
+      {
         id: "actions",
         cell: ({ row }) => (
-        <DropdownMenu>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
-            </Button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+              <DropdownMenuItem onClick={() => handleEdit(row.original)}>
                 <Pencil className="w-4 h-4 mr-2" /> Edit Details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-rose-600" onClick={() => handleDelete(row.original.id)}>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-rose-600"
+                onClick={() => handleDelete(row.original.id)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" /> Delete Category
-            </DropdownMenuItem>
+              </DropdownMenuItem>
             </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
         ),
-    },
-  ], []);
+      },
+    ],
+    [],
+  );
 
   const table = useReactTable({
     data: categories,
@@ -420,106 +530,127 @@ export default function ExpenseCategoriesPage() {
   return (
     <div className="min-h-screen bg-slate-50 relative">
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
-      
-      <CategoryDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen} 
-        initialData={editingCategory} 
+
+      <CategoryDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        initialData={editingCategory}
         onSuccess={fetchCategories}
       />
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto">
-        
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto"
+      >
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                    <Tags className="h-8 w-8 text-emerald-600" />
-                    Expense Categories
-                </h1>
-                <p className="text-slate-500">Configure accounts and budget limits for expenditures.</p>
-            </div>
-            
-            <div className="flex gap-2">
-                <Button 
-                    onClick={handleCreate} 
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200 gap-2"
-                >
-                    <PlusCircle className="w-4 h-4" /> New Category
-                </Button>
-            </div>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <Tags className="h-8 w-8 text-emerald-600" />
+              Expense Categories
+            </h1>
+            <p className="text-slate-500">
+              Configure accounts and budget limits for expenditures.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleCreate}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200 gap-2"
+            >
+              <PlusCircle className="w-4 h-4" /> New Category
+            </Button>
+          </div>
         </div>
 
         {/* TOOLBAR & BULK ACTIONS */}
         <Card className="rounded-xl border-slate-200 shadow-sm bg-white">
-            <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    
-                    {/* Left: Filters */}
-                    <div className="flex flex-1 items-center gap-3 w-full">
-                        <div className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <Input
-                                placeholder="Search categories..."
-                                value={(table.getColumn("name")?.getFilterValue()) ?? ""}
-                                onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-                                className="pl-10 bg-slate-50 border-slate-200"
-                            />
-                        </div>
-                        
-                        <Select
-                            value={(table.getColumn("status")?.getFilterValue()) ?? ""}
-                            onValueChange={(value) => table.getColumn("status")?.setFilterValue(value === "all" ? undefined : value)}
-                        >
-                            <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200">
-                                <Filter className="w-3 h-3 mr-2 text-slate-500" />
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="Inactive">Inactive</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Right: Bulk Actions */}
-                    {selectedCount > 0 && (
-                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5 duration-200">
-                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100">
-                                {selectedCount} Selected
-                            </Badge>
-                            
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="border-slate-200 text-slate-700">
-                                        Bulk Actions
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                        <CheckSquare className="w-4 h-4 mr-2" /> Mark as Active
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Archive className="w-4 h-4 mr-2" /> Archive Selected
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleDeleteSelected} className="text-rose-600 focus:text-rose-600 focus:bg-rose-50">
-                                        <Trash2 className="w-4 h-4 mr-2" /> Delete Selected
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    )}
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              {/* Left: Filters */}
+              <div className="flex flex-1 items-center gap-3 w-full">
+                <div className="relative w-full max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search categories..."
+                    value={table.getColumn("name")?.getFilterValue() ?? ""}
+                    onChange={(event) =>
+                      table
+                        .getColumn("name")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    className="pl-10 bg-slate-50 border-slate-200"
+                  />
                 </div>
-            </CardContent>
+
+                <Select
+                  value={table.getColumn("status")?.getFilterValue() ?? ""}
+                  onValueChange={(value) =>
+                    table
+                      .getColumn("status")
+                      ?.setFilterValue(value === "all" ? undefined : value)
+                  }
+                >
+                  <SelectTrigger className="w-[150px] bg-slate-50 border-slate-200">
+                    <Filter className="w-3 h-3 mr-2 text-slate-500" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Right: Bulk Actions */}
+              {selectedCount > 0 && (
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5 duration-200">
+                  <Badge
+                    variant="secondary"
+                    className="bg-emerald-50 text-emerald-700 border-emerald-100"
+                  >
+                    {selectedCount} Selected
+                  </Badge>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-slate-200 text-slate-700"
+                      >
+                        Bulk Actions
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <CheckSquare className="w-4 h-4 mr-2" /> Mark as Active
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Archive className="w-4 h-4 mr-2" /> Archive Selected
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleDeleteSelected}
+                        className="text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete Selected
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+            </div>
+          </CardContent>
         </Card>
 
         {/* DATA TABLE */}
         <Card className="rounded-xl border-slate-200 shadow-sm bg-white overflow-hidden">
-             <DataTable table={table} columns={columns} />
+          <DataTable table={table} columns={columns} />
         </Card>
-
       </motion.div>
     </div>
   );

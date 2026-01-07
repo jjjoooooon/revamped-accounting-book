@@ -5,17 +5,17 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  User, 
-  Save, 
-  X, 
-  UploadCloud, 
-  Calendar as CalendarIcon, 
+import {
+  User,
+  Save,
+  X,
+  UploadCloud,
+  Calendar as CalendarIcon,
   CreditCard,
   MapPin,
   Phone,
   Mail,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,9 @@ export default function MemberRegistration() {
 
   const router = useRouter();
   const profilePicture = form.watch("profilePicture");
-  const previewUrl = profilePicture ? URL.createObjectURL(profilePicture) : null;
+  const previewUrl = profilePicture
+    ? URL.createObjectURL(profilePicture)
+    : null;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function onSubmit(data) {
@@ -91,13 +93,13 @@ export default function MemberRegistration() {
       // In a real app, you'd handle file upload separately and get a URL
       // For now, we'll just ignore the file object or convert to base64 if needed
       // const { profilePicture, ...memberData } = data;
-      
+
       await memberService.create({
         ...data,
         amount_per_cycle: Number(data.amount_per_cycle),
-        // profilePicture: "url_from_upload" 
+        // profilePicture: "url_from_upload"
       });
-      
+
       toast.success("Member registered successfully");
       router.push("/members"); // Redirect to members list
     } catch (error) {
@@ -115,29 +117,40 @@ export default function MemberRegistration() {
       className=" space-y-6"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex justify-between items-center">
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between items-center"
+      >
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Register New Member</h2>
-          <p className="text-slate-500 text-sm">Create a new profile for Sanda collection and records.</p>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Register New Member
+          </h2>
+          <p className="text-slate-500 text-sm">
+            Create a new profile for Sanda collection and records.
+          </p>
         </div>
-        <Button variant="outline" className="border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-            <X className="w-4 h-4 mr-2" /> Cancel
+        <Button
+          variant="outline"
+          className="border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <X className="w-4 h-4 mr-2" /> Cancel
         </Button>
       </motion.div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             {/* LEFT COLUMN: Photo & Basic Info */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-              
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-2 space-y-6"
+            >
               {/* Card 1: Identity */}
               <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-5">
-                   <User className="h-32 w-32 text-emerald-600 transform -rotate-12" />
+                  <User className="h-32 w-32 text-emerald-600 transform -rotate-12" />
                 </div>
-                
+
                 <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg">
                     <User className="h-4 w-4" />
@@ -153,18 +166,21 @@ export default function MemberRegistration() {
                     render={({ field }) => (
                       <FormItem className="flex flex-col items-center space-y-3">
                         <div className="relative group cursor-pointer">
-                            <Avatar className="w-32 h-32 border-4 border-slate-50 shadow-sm group-hover:border-emerald-100 transition-all">
-                            <AvatarImage src={previewUrl || ""} className="object-cover" />
+                          <Avatar className="w-32 h-32 border-4 border-slate-50 shadow-sm group-hover:border-emerald-100 transition-all">
+                            <AvatarImage
+                              src={previewUrl || ""}
+                              className="object-cover"
+                            />
                             <AvatarFallback className="bg-slate-100 text-slate-400">
-                                <User className="w-12 h-12" />
+                              <User className="w-12 h-12" />
                             </AvatarFallback>
-                            </Avatar>
-                            <label 
-                                htmlFor="file-upload" 
-                                className="absolute bottom-0 right-0 bg-emerald-600 text-white p-2 rounded-full shadow-lg hover:bg-emerald-700 transition-colors cursor-pointer"
-                            >
-                                <UploadCloud className="w-4 h-4" />
-                            </label>
+                          </Avatar>
+                          <label
+                            htmlFor="file-upload"
+                            className="absolute bottom-0 right-0 bg-emerald-600 text-white p-2 rounded-full shadow-lg hover:bg-emerald-700 transition-colors cursor-pointer"
+                          >
+                            <UploadCloud className="w-4 h-4" />
+                          </label>
                         </div>
                         <FormControl>
                           <Input
@@ -172,10 +188,14 @@ export default function MemberRegistration() {
                             id="file-upload"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
+                            onChange={(e) =>
+                              field.onChange(e.target.files?.[0] ?? null)
+                            }
                           />
                         </FormControl>
-                        <p className="text-xs text-slate-400 font-medium">JPG, PNG max 5MB</p>
+                        <p className="text-xs text-slate-400 font-medium">
+                          JPG, PNG max 5MB
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -188,24 +208,36 @@ export default function MemberRegistration() {
                       name="name"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel className="text-slate-700">Full Name</FormLabel>
+                          <FormLabel className="text-slate-700">
+                            Full Name
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Abdul Rahman" className="bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500" {...field} />
+                            <Input
+                              placeholder="e.g. Abdul Rahman"
+                              className="bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="contact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700">Phone Number</FormLabel>
+                          <FormLabel className="text-slate-700">
+                            Phone Number
+                          </FormLabel>
                           <div className="relative">
                             <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                             <FormControl>
-                                <Input placeholder="077xxxxxxx" className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500" {...field} />
+                              <Input
+                                placeholder="077xxxxxxx"
+                                className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                                {...field}
+                              />
                             </FormControl>
                           </div>
                           <FormMessage />
@@ -217,27 +249,39 @@ export default function MemberRegistration() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-700">Email (Optional)</FormLabel>
+                          <FormLabel className="text-slate-700">
+                            Email (Optional)
+                          </FormLabel>
                           <div className="relative">
                             <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                             <FormControl>
-                                <Input placeholder="email@example.com" className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500" {...field} />
+                              <Input
+                                placeholder="email@example.com"
+                                className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                                {...field}
+                              />
                             </FormControl>
                           </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="address"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel className="text-slate-700">Residential Address</FormLabel>
+                          <FormLabel className="text-slate-700">
+                            Residential Address
+                          </FormLabel>
                           <div className="relative">
                             <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                             <FormControl>
-                                <Input placeholder="No. 123, Mosque Road, Kandy" className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500" {...field} />
+                              <Input
+                                placeholder="No. 123, Mosque Road, Kandy"
+                                className="pl-9 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                                {...field}
+                              />
                             </FormControl>
                           </div>
                           <FormMessage />
@@ -251,7 +295,6 @@ export default function MemberRegistration() {
 
             {/* RIGHT COLUMN: Sanda Settings */}
             <motion.div variants={itemVariants} className="space-y-6">
-                
               {/* Card 2: Billing Config */}
               <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm h-full">
                 <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -262,70 +305,102 @@ export default function MemberRegistration() {
                 </h3>
 
                 <div className="space-y-5">
-                    <FormField
+                  <FormField
                     control={form.control}
                     name="payment_frequency"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="text-slate-700">Billing Cycle</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Billing Cycle
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
                             <SelectTrigger className="bg-slate-50 border-slate-200 focus:ring-emerald-500">
-                                <SelectValue placeholder="Select Frequency" />
+                              <SelectValue placeholder="Select Frequency" />
                             </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="Monthly">Monthly</SelectItem>
-                                <SelectItem value="Quarterly">Quarterly</SelectItem>
-                                <SelectItem value="Semi-Annual">Semi-Annual</SelectItem>
-                                <SelectItem value="Yearly">Yearly</SelectItem>
-                            </SelectContent>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Monthly">Monthly</SelectItem>
+                            <SelectItem value="Quarterly">Quarterly</SelectItem>
+                            <SelectItem value="Semi-Annual">
+                              Semi-Annual
+                            </SelectItem>
+                            <SelectItem value="Yearly">Yearly</SelectItem>
+                          </SelectContent>
                         </Select>
                         <FormMessage />
-                        </FormItem>
+                      </FormItem>
                     )}
-                    />
+                  />
 
-                    <FormField
+                  <FormField
                     control={form.control}
                     name="amount_per_cycle"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="text-slate-700">Amount (LKR)</FormLabel>
+                      <FormItem>
+                        <FormLabel className="text-slate-700">
+                          Amount (LKR)
+                        </FormLabel>
                         <FormControl>
-                            <div className="relative">
-                                <span className="absolute left-3 top-2.5 text-slate-500 text-sm font-semibold">Rs.</span>
-                                <Input type="number" className="pl-10 bg-slate-50 border-slate-200 font-semibold text-slate-900 focus:ring-emerald-500 focus:border-emerald-500" {...field} />
-                            </div>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5 text-slate-500 text-sm font-semibold">
+                              Rs.
+                            </span>
+                            <Input
+                              type="number"
+                              className="pl-10 bg-slate-50 border-slate-200 font-semibold text-slate-900 focus:ring-emerald-500 focus:border-emerald-500"
+                              {...field}
+                            />
+                          </div>
                         </FormControl>
-                        <p className="text-xs text-slate-500">Fixed amount per billing cycle.</p>
+                        <p className="text-xs text-slate-500">
+                          Fixed amount per billing cycle.
+                        </p>
                         <FormMessage />
-                        </FormItem>
+                      </FormItem>
                     )}
-                    />
+                  />
 
-                    <FormField
+                  <FormField
                     control={form.control}
                     name="start_date"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel className="text-slate-700">Start Billing From</FormLabel>
+                      <FormItem className="flex flex-col">
+                        <FormLabel className="text-slate-700">
+                          Start Billing From
+                        </FormLabel>
                         <FormControl>
-                            <JoinedDatePicker
-                                value={field.value}
-                                onChange={field.onChange}
-                            />
+                          <JoinedDatePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
-                        </FormItem>
+                      </FormItem>
                     )}
-                    />
-                    
-                    <Separator className="bg-slate-100 my-4" />
+                  />
 
-                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm shadow-emerald-200" disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Registering...</> : <><Save className="w-4 h-4 mr-2" /> Register Member</>}
-                    </Button>
+                  <Separator className="bg-slate-100 my-4" />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm shadow-emerald-200"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                        Registering...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" /> Register Member
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </motion.div>

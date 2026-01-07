@@ -12,7 +12,7 @@ import {
   Users,
   Trophy,
   CalendarClock,
-  HeartHandshake
+  HeartHandshake,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -29,12 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -125,7 +120,10 @@ const columns = [
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
@@ -143,7 +141,10 @@ const columns = [
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Donor Profile <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -153,12 +154,16 @@ const columns = [
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 bg-emerald-50 text-emerald-700 border border-emerald-100">
             <AvatarImage src="" />
-            <AvatarFallback>{donor.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {donor.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div>
             <div className="font-medium text-slate-900">{donor.name}</div>
             <div className="text-xs text-slate-500">
-              {donor.type === "Member" ? `ID: ${donor.member_id}` : "Guest Donor"}
+              {donor.type === "Member"
+                ? `ID: ${donor.member_id}`
+                : "Guest Donor"}
             </div>
           </div>
         </div>
@@ -171,8 +176,14 @@ const columns = [
     cell: ({ row }) => {
       const type = row.getValue("type");
       return (
-        <Badge variant={type === "Member" ? "default" : "secondary"} 
-            className={type === "Member" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}>
+        <Badge
+          variant={type === "Member" ? "default" : "secondary"}
+          className={
+            type === "Member"
+              ? "bg-emerald-600 hover:bg-emerald-700"
+              : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+          }
+        >
           {type}
         </Badge>
       );
@@ -180,9 +191,7 @@ const columns = [
   },
   {
     accessorKey: "total_contributed",
-    header: ({ column }) => (
-        <div className="text-right">Total Given</div>
-    ),
+    header: ({ column }) => <div className="text-right">Total Given</div>,
     cell: ({ row }) => {
       return (
         <div className="text-right font-bold text-slate-900">
@@ -225,7 +234,9 @@ const columns = [
             <DropdownMenuItem>View Donation History</DropdownMenuItem>
             <DropdownMenuItem>Edit Contact Info</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-slate-500">Archive Profile</DropdownMenuItem>
+            <DropdownMenuItem className="text-slate-500">
+              Archive Profile
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -269,60 +280,89 @@ export default function DonorsPage() {
         className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               <Users className="h-8 w-8 text-emerald-600" />
               Donor Management
             </h1>
-            <p className="text-slate-500">Track profiles of members and guest contributors.</p>
+            <p className="text-slate-500">
+              Track profiles of members and guest contributors.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50">
+            <Button
+              variant="outline"
+              className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
               <Download className="h-4 w-4" /> Export CSV
             </Button>
             {/* Usually donors are added via transactions, but this allows creating a profile manually */}
-            <Button 
-                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
-                onClick={() => setIsNavigating(true)}
-                disabled={isNavigating}
+            <Button
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
+              onClick={() => setIsNavigating(true)}
+              disabled={isNavigating}
             >
-            {isNavigating ? <LoaderIcon className="animate-spin h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-            New Guest Profile
+              {isNavigating ? (
+                <LoaderIcon className="animate-spin h-4 w-4" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+              New Guest Profile
             </Button>
           </div>
         </motion.div>
 
         {/* Stats Cards */}
-        <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-3">
+        <motion.div
+          variants={itemVariants}
+          className="grid gap-4 md:grid-cols-3"
+        >
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Total Donors</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Total Donors
+              </CardTitle>
               <Users className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">1,240</div>
-              <p className="text-xs text-slate-400 mt-1">850 Members • 390 Guests</p>
+              <p className="text-xs text-slate-400 mt-1">
+                850 Members • 390 Guests
+              </p>
             </CardContent>
           </Card>
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Top Contributor</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Top Contributor
+              </CardTitle>
               <Trophy className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">Mr. Farook</div>
-              <p className="text-xs text-emerald-600 font-medium mt-1">Rs. 500,000 Lifetime</p>
+              <div className="text-2xl font-bold text-slate-900">
+                Mr. Farook
+              </div>
+              <p className="text-xs text-emerald-600 font-medium mt-1">
+                Rs. 500,000 Lifetime
+              </p>
             </CardContent>
           </Card>
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Recent Activity</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Recent Activity
+              </CardTitle>
               <CalendarClock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">12</div>
-              <p className="text-xs text-slate-400 mt-1">New donors this month</p>
+              <p className="text-xs text-slate-400 mt-1">
+                New donors this month
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -331,32 +371,39 @@ export default function DonorsPage() {
         <motion.div variants={itemVariants}>
           <Card className="rounded-xl border-slate-100 shadow-sm overflow-hidden bg-white">
             <CardContent className="pt-6">
-                
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full max-w-sm">
+                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                        placeholder="Search by name..."
-                        value={table.getColumn("name")?.getFilterValue() ?? ""}
-                        onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-                        className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="Search by name..."
+                      value={table.getColumn("name")?.getFilterValue() ?? ""}
+                      onChange={(event) =>
+                        table
+                          .getColumn("name")
+                          ?.setFilterValue(event.target.value)
+                      }
+                      className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
                     />
-                    </div>
-                    <Select
-                        value={table.getColumn("type")?.getFilterValue() ?? ""}
-                        onValueChange={(value) => table.getColumn("type")?.setFilterValue(value === "all" ? undefined : value)}
-                    >
+                  </div>
+                  <Select
+                    value={table.getColumn("type")?.getFilterValue() ?? ""}
+                    onValueChange={(value) =>
+                      table
+                        .getColumn("type")
+                        ?.setFilterValue(value === "all" ? undefined : value)
+                    }
+                  >
                     <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200 focus:ring-emerald-500">
-                        <SelectValue placeholder="Donor Type" />
+                      <SelectValue placeholder="Donor Type" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="Member">Members</SelectItem>
-                        <SelectItem value="Guest">Guests</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Member">Members</SelectItem>
+                      <SelectItem value="Guest">Guests</SelectItem>
                     </SelectContent>
-                    </Select>
+                  </Select>
                 </div>
               </div>
 
