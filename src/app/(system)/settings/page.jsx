@@ -9,6 +9,6 @@ const page = () => {
 export default page;
 
 export const metadata = {
-  title: "Settings | EMI-POS",
+  title: "Settings | Masjidh Accounting Solution",
   description: "Developed By : Inzeedo (PVT) Ltd.",
 };

@@ -64,15 +64,21 @@ import { accountingService } from "@/services/accountingService";
 
 
 // --- 2. CONFIG ---
-const MOSQUE_DETAILS = {
-  name: "Al-Manar Grand Mosque",
-  address: "123 Main Street, Kandy",
-  contact: "+94 77 123 4567"
+// Initial default, will be overwritten by API
+const DEFAULT_MOSQUE_DETAILS = {
+  name: "Masjid Name",
+  address: "Address Line 1",
+  contact: "Contact Number"
 };
 
 // --- 3. THERMAL RECEIPT ---
-const SandaReceipt = ({ data }) => {
+const SandaReceipt = ({ data, settings }) => {
   if (!data) return null;
+  
+  const mosqueName = settings?.mosqueName || DEFAULT_MOSQUE_DETAILS.name;
+  const address = settings?.address || DEFAULT_MOSQUE_DETAILS.address;
+  const contact = settings?.phone || DEFAULT_MOSQUE_DETAILS.contact;
+
   return (
     <div id="sanda-receipt" className="hidden print:block p-2 bg-white text-black font-mono text-sm leading-tight">
       <style jsx global>{`
@@ -85,9 +91,9 @@ const SandaReceipt = ({ data }) => {
       `}</style>
       
       <div className="text-center mb-4">
-        <h1 className="font-bold text-lg uppercase">{MOSQUE_DETAILS.name}</h1>
-        <p className="text-xs">{MOSQUE_DETAILS.address}</p>
-        <p className="text-xs">{MOSQUE_DETAILS.contact}</p>
+        <h1 className="font-bold text-lg uppercase">{mosqueName}</h1>
+        <p className="text-xs">{address}</p>
+        <p className="text-xs">{contact}</p>
       </div>
 
       <div className="border-b-2 border-dashed border-black my-2" />
@@ -131,7 +137,10 @@ const SandaReceipt = ({ data }) => {
 
       <div className="text-center text-xs mt-6">
         <p>Jazakallahu Khairan</p>
-        <p className="text-[10px] mt-2 opacity-70">Al-Manar System</p>
+        <div className="mt-4 pt-2 border-t border-dashed border-black/50 opacity-70">
+            <p className="font-semibold">Product of Inzeedo</p>
+            <p>Contact number 0785706441</p>
+        </div>
       </div>
     </div>
   );
@@ -156,6 +165,7 @@ export default function SandaCollectionPage() {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [pendingInvoices, setPendingInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [appSettings, setAppSettings] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -172,12 +182,14 @@ export default function SandaCollectionPage() {
   useState(() => {
     const loadData = async () => {
       try {
-        const [membersData, accountsData] = await Promise.all([
+        const [membersData, accountsData, settingsData] = await Promise.all([
           memberService.getAll(),
-          accountingService.getBankAccounts()
+          accountingService.getBankAccounts(),
+          fetch('/api/settings/app').then(res => res.json())
         ]);
         setMembers(membersData);
         setBankAccounts(accountsData);
+        setAppSettings(settingsData);
       } catch (error) {
         console.error("Failed to load data", error);
         toast.error("Failed to load members or accounts");
@@ -325,7 +337,8 @@ export default function SandaCollectionPage() {
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
       
       {/* Hidden Receipt */}
-      <SandaReceipt data={printData} />
+      {/* Hidden Receipt */}
+      <SandaReceipt data={printData} settings={appSettings} />
 
       <div className="max-w-6xl mx-auto space-y-6 relative z-10">
         

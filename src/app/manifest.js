@@ -1,8 +1,8 @@
 export default function manifest() {
   return {
-    name: 'EMI-POS',
-    short_name: 'EMI-POS',
-    description: 'Eminence Point of Sale Developed By: Inzeedo',
+    name: 'Masjidh Accounting Solution',
+    short_name: 'Masjidh Accounting Solution',
+    description: 'Masjidh Accounting Solution Developed By: Inzeedo',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

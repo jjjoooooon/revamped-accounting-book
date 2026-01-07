@@ -46,7 +46,7 @@ export async function PUT(request) {
             appName, appVersion, footerText, footerCopyright, showFooter,
             mosqueName, regNo, email, phone, address,
             currency, fiscalYearStart, autoBillDate, receiptFooter,
-            smsEnabled, emailEnabled
+            smsEnabled, emailEnabled, logo
         } = body;
 
         // Validation
@@ -66,7 +66,7 @@ export async function PUT(request) {
                     appName, appVersion, footerText, footerCopyright, showFooter,
                     mosqueName, regNo, email, phone, address,
                     currency, fiscalYearStart, autoBillDate, receiptFooter,
-                    smsEnabled, emailEnabled
+                    smsEnabled, emailEnabled, logo
                 },
             });
 
