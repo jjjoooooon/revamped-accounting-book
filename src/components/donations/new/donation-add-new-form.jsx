@@ -50,11 +50,10 @@ import { donationService } from "@/services/donationService";
 import { memberService } from "@/services/memberService";
 
 // --- CONFIGURATION ---
-const MOSQUE_DETAILS = {
-  name: "Al-Manar Grand Mosque",
-  address: "123 Main Street, Kandy",
-  contact: "+94 77 123 4567",
-  regNo: "Reg No: MQ/2023/885"
+const DEFAULT_MOSQUE_DETAILS = {
+  name: "Masjid Name",
+  address: "Address Line 1",
+  contact: "Contact Number",
 };
 
 const fundTypes = [
@@ -66,18 +65,13 @@ const fundTypes = [
 
 // ... (keep other imports)
 
-// Remove mockMembers
-// const mockMembers = ... 
-
-// Inside component
-// const [members, setMembers] = useState([]);
-
-// Fetch members on mount
-// useState(() => { ... }, []);
-
 // --- THERMAL RECEIPT COMPONENT ---
-const ThermalReceipt = ({ data }) => {
+const ThermalReceipt = ({ data, settings }) => {
   if (!data) return null;
+
+  const mosqueName = settings?.mosqueName || DEFAULT_MOSQUE_DETAILS.name;
+  const address = settings?.address || DEFAULT_MOSQUE_DETAILS.address;
+  const contact = settings?.phone || DEFAULT_MOSQUE_DETAILS.contact;
 
   return (
     <div id="thermal-receipt" className="hidden print:block p-2 bg-white text-black font-mono text-sm leading-tight">
@@ -98,9 +92,9 @@ const ThermalReceipt = ({ data }) => {
       `}</style>
       
       <div className="text-center mb-4">
-        <h1 className="font-bold text-lg uppercase">{MOSQUE_DETAILS.name}</h1>
-        <p className="text-xs">{MOSQUE_DETAILS.address}</p>
-        <p className="text-xs">{MOSQUE_DETAILS.contact}</p>
+        <h1 className="font-bold text-lg uppercase">{mosqueName}</h1>
+        <p className="text-xs">{address}</p>
+        <p className="text-xs">{contact}</p>
       </div>
 
       <div className="border-b-2 border-dashed border-black my-2" />
@@ -143,7 +137,10 @@ const ThermalReceipt = ({ data }) => {
 
       <div className="text-center text-xs space-y-4 mt-6">
         <p>"May Allah accept your deeds."</p>
-        <div className="pt-8 border-t border-black w-3/4 mx-auto">Authorized Signature</div>
+        <div className="mt-4 pt-2 border-t border-dashed border-black/50 opacity-70">
+            <p className="font-semibold">Product of Inzeedo</p>
+            <p>Contact number 0785706441</p>
+        </div>
       </div>
     </div>
   );
@@ -167,20 +164,25 @@ export default function DonationEntryWithPrint({ initialData }) {
   const [printData, setPrintData] = useState(null);
   const [openMemberSearch, setOpenMemberSearch] = useState(false);
   const [members, setMembers] = useState([]); // Real members state
+  const [appSettings, setAppSettings] = useState(null);
   const guestInputRef = useRef(null); 
   const isEditMode = !!initialData;
 
   // Fetch members on mount
   useEffect(() => {
-      const fetchMembers = async () => {
+      const fetchData = async () => {
           try {
-              const data = await memberService.getAll();
-              setMembers(data);
+              const [membersData, settingsData] = await Promise.all([
+                  memberService.getAll(),
+                  fetch('/api/settings/app').then(res => res.json())
+              ]);
+              setMembers(membersData);
+              setAppSettings(settingsData);
           } catch (error) {
-              console.error("Failed to fetch members", error);
+              console.error("Failed to fetch data", error);
           }
       };
-      fetchMembers();
+      fetchData();
   }, []);
 
   const form = useForm({
@@ -283,7 +285,7 @@ export default function DonationEntryWithPrint({ initialData }) {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 relative">
-      <ThermalReceipt data={printData} />
+      <ThermalReceipt data={printData} settings={appSettings} />
 
       <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         

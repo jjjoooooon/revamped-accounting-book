@@ -2,7 +2,7 @@
 
 import Dexie from 'dexie';
 
-export const db = new Dexie('emipos');
+export const db = new Dexie('MasjidhAccountingSolution');
 
 db.version(1).stores({
   products: '++id, &productId, name, price', // ++id is auto-incrementing primary key, &productId is a unique index
