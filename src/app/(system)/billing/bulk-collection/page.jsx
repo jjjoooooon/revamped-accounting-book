@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, eachMonthOfInterval, parseISO, startOfMonth, endOfMonth } from 'date-fns';
-import { Search, Loader2, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, User, Phone, Mail, MapPin, Calendar, CreditCard } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, User, Phone, Mail, MapPin, Calendar, CreditCard, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,90 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+// --- BULK RECEIPT COMPONENT ---
+const BulkPrintReceipts = ({ receipts, settings }) => {
+    if (!receipts || receipts.length === 0) return null;
+
+    const mosqueName = settings?.mosqueName || "Masjid Name";
+    const address = settings?.address || "Address Line 1";
+    const contact = settings?.phone || "Contact Number";
+
+    return (
+        <div id="bulk-print-container" className="hidden print:block">
+            <style jsx global>{`
+                @media print {
+                    body * { visibility: hidden; }
+                    #bulk-print-container, #bulk-print-container * { visibility: visible; }
+                    #bulk-print-container { 
+                        position: absolute; 
+                        left: 0; 
+                        top: 0; 
+                        width: 100%; 
+                    }
+                    .receipt-page {
+                        width: 80mm;
+                        padding: 10px;
+                        margin-bottom: 20px;
+                        page-break-after: always; /* CRITICAL FOR SPLIT */
+                        break-after: always;
+                    }
+                    @page { margin: 0; size: auto; }
+                }
+            `}</style>
+
+            {receipts.map((data, index) => (
+                <div key={index} className="receipt-page font-mono text-sm leading-tight text-black">
+                    <div className="text-center mb-4">
+                        <h1 className="font-bold text-lg uppercase">{mosqueName}</h1>
+                        <p className="text-xs">{address}</p>
+                        <p className="text-xs">{contact}</p>
+                    </div>
+
+                    <div className="border-b-2 border-dashed border-black my-2" />
+
+                    <div className="flex justify-between text-xs mb-2">
+                        <span>Date: {new Date().toLocaleDateString()}</span>
+                        <span>Rec #: {data.receiptNo.toString().slice(-6)}</span>
+                    </div>
+
+                    <div className="border-b border-dashed border-black my-2" />
+
+                    <div className="my-4">
+                        <div className="flex justify-between font-bold mb-1">
+                            <span>Member:</span>
+                            <span>{data.memberName}</span>
+                        </div>
+                        <div className="flex justify-between text-xs mb-3">
+                            <span>ID:</span>
+                            <span>{data.memberId}</span>
+                        </div>
+                        
+                        <div className="flex justify-between mb-1">
+                            <span>Period:</span>
+                            <span>{data.period}</span>
+                        </div>
+                    </div>
+
+                    <div className="border-b-2 border-dashed border-black my-2" />
+
+                    <div className="flex justify-between items-center my-4">
+                        <span className="font-bold text-lg">TOTAL</span>
+                        <span className="font-bold text-xl">Rs. {Number(data.amount).toLocaleString()}</span>
+                    </div>
+
+                    <div className="text-center text-xs mt-6">
+                        <p>Jazakallahu Khairan</p>
+                        <div className="mt-4 pt-2 border-t border-dashed border-black/50 opacity-70">
+                            <p className="font-semibold">Product of Inzeedo</p>
+                            <p>Contact number 0785706441</p>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 export default function BulkCollectionPage() {
     // Default range: Current month - 5 to Current month + 6
     const [startMonth, setStartMonth] = useState(format(subMonths(new Date(), 5), 'yyyy-MM'));
@@ -54,12 +138,19 @@ export default function BulkCollectionPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     
+    // Print State
+    const [printReceipts, setPrintReceipts] = useState([]);
+    const [isPrintConfirmOpen, setIsPrintConfirmOpen] = useState(false);
+    const [appSettings, setAppSettings] = useState(null);
+
     // Member Details Modal State
     const [selectedMember, setSelectedMember] = useState(null);
     const [isMemberDetailsOpen, setIsMemberDetailsOpen] = useState(false);
 
     useEffect(() => {
         fetchMembers();
+        // Fetch settings for receipt
+        fetch('/api/settings/app').then(res => res.json()).then(setAppSettings).catch(console.error);
     }, [startMonth, endMonth]);
 
     const fetchMembers = async () => {
@@ -179,8 +270,12 @@ export default function BulkCollectionPage() {
             if (!res.ok) throw new Error('Failed to process payments');
 
             const result = await res.json();
-            toast.success(`Successfully processed ${result.results.length} payments`);
+            
+            // Success! Prepare for printing
+            setPrintReceipts(result.results);
             setIsConfirmOpen(false);
+            setIsPrintConfirmOpen(true); // Open Print Confirmation
+            
             fetchMembers(); // Refresh data
         } catch (error) {
             console.error(error);
@@ -188,6 +283,13 @@ export default function BulkCollectionPage() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handlePrintConfirm = () => {
+        setIsPrintConfirmOpen(false);
+        setTimeout(() => {
+            window.print();
+        }, 500);
     };
 
     // Helper to generate month options
@@ -204,6 +306,8 @@ export default function BulkCollectionPage() {
 
     return (
         <div className="p-6 space-y-6 h-full flex flex-col">
+            <BulkPrintReceipts receipts={printReceipts} settings={appSettings} />
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Bulk Payment Matrix</h1>
@@ -318,6 +422,24 @@ export default function BulkCollectionPage() {
                     </ScrollArea>
                 </CardContent>
             </Card>
+
+            {/* Print Confirmation Dialog */}
+            <Dialog open={isPrintConfirmOpen} onOpenChange={setIsPrintConfirmOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Payments Recorded Successfully</DialogTitle>
+                        <DialogDescription>
+                            {printReceipts.length} payments have been processed. Do you want to print the receipts now?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-3 mt-4">
+                        <Button variant="outline" onClick={() => setIsPrintConfirmOpen(false)}>No, Skip</Button>
+                        <Button onClick={handlePrintConfirm} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Printer className="w-4 h-4 mr-2" /> Yes, Print All
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Bulk Payment Confirmation Dialog */}
             <div className="fixed bottom-6 right-6 z-50">

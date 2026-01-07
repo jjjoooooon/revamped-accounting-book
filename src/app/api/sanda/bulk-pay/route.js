@@ -101,7 +101,15 @@ export async function POST(request) {
                     },
                 });
 
-                processed.push({ memberId: p.memberId, status: 'success' });
+                processed.push({
+                    memberId: p.memberId,
+                    memberName: member.name,
+                    amount: payment.amount,
+                    period: period, // or p.period
+                    receiptNo: payment.id,
+                    date: new Date().toISOString(),
+                    status: 'success'
+                });
             }
             return processed;
         });
