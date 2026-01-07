@@ -14,7 +14,7 @@ import {
   CalendarClock,
   HeartHandshake,
   Pencil,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -32,12 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -82,7 +77,7 @@ export default function DonorsPage() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
-  
+
   // Modal State
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDonor, setEditingDonor] = useState(null);
@@ -120,7 +115,10 @@ export default function DonorsPage() {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -138,7 +136,10 @@ export default function DonorsPage() {
     {
       accessorKey: "name",
       header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
           Donor Profile <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
@@ -148,7 +149,9 @@ export default function DonorsPage() {
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 bg-emerald-50 text-emerald-700 border border-emerald-100">
               <AvatarImage src="" />
-              <AvatarFallback>{donor.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {donor.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium text-slate-900">{donor.name}</div>
@@ -162,9 +165,7 @@ export default function DonorsPage() {
     },
     {
       accessorKey: "total_contributed",
-      header: ({ column }) => (
-          <div className="text-right">Total Given</div>
-      ),
+      header: ({ column }) => <div className="text-right">Total Given</div>,
       cell: ({ row }) => {
         return (
           <div className="text-right font-bold text-slate-900">
@@ -188,7 +189,7 @@ export default function DonorsPage() {
       header: "Last Active",
       cell: ({ row }) => (
         <div className="text-sm text-slate-500">
-          {row.getValue("last_donation") 
+          {row.getValue("last_donation")
             ? format(new Date(row.getValue("last_donation")), "MMM dd, yyyy")
             : "Never"}
         </div>
@@ -207,11 +208,19 @@ export default function DonorsPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => { setEditingDonor(donor); setIsFormOpen(true); }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  setEditingDonor(donor);
+                  setIsFormOpen(true);
+                }}
+              >
                 <Pencil className="w-4 h-4 mr-2" /> Edit Details
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(donor.id)}>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => handleDelete(donor.id)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" /> Delete Profile
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -244,11 +253,11 @@ export default function DonorsPage() {
         }}
       ></div>
 
-      <DonorForm 
-        open={isFormOpen} 
-        onOpenChange={setIsFormOpen} 
-        donorToEdit={editingDonor} 
-        onSuccess={fetchDonors} 
+      <DonorForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        donorToEdit={editingDonor}
+        onSuccess={fetchDonors}
       />
 
       <motion.div
@@ -258,38 +267,58 @@ export default function DonorsPage() {
         className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               <Users className="h-8 w-8 text-emerald-600" />
               Donor Management
             </h1>
-            <p className="text-slate-500">Track profiles of guest contributors.</p>
+            <p className="text-slate-500">
+              Track profiles of guest contributors.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50">
+            <Button
+              variant="outline"
+              className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
               <Download className="h-4 w-4" /> Export CSV
             </Button>
-            <Button 
-                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
-                onClick={() => { setEditingDonor(null); setIsFormOpen(true); }}
+            <Button
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
+              onClick={() => {
+                setEditingDonor(null);
+                setIsFormOpen(true);
+              }}
             >
-            <UserPlus className="h-4 w-4" />
-            New Guest Profile
+              <UserPlus className="h-4 w-4" />
+              New Guest Profile
             </Button>
           </div>
         </motion.div>
 
         {/* Stats Cards */}
-        <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-3">
+        <motion.div
+          variants={itemVariants}
+          className="grid gap-4 md:grid-cols-3"
+        >
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Total Donors</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Total Donors
+              </CardTitle>
               <Users className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{data.length}</div>
-              <p className="text-xs text-slate-400 mt-1">Registered Guest Donors</p>
+              <div className="text-2xl font-bold text-slate-900">
+                {data.length}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Registered Guest Donors
+              </p>
             </CardContent>
           </Card>
           {/* Add more stats as needed */}
@@ -299,19 +328,22 @@ export default function DonorsPage() {
         <motion.div variants={itemVariants}>
           <Card className="rounded-xl border-slate-100 shadow-sm overflow-hidden bg-white">
             <CardContent className="pt-6">
-                
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full max-w-sm">
+                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                        placeholder="Search by name..."
-                        value={table.getColumn("name")?.getFilterValue() ?? ""}
-                        onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-                        className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="Search by name..."
+                      value={table.getColumn("name")?.getFilterValue() ?? ""}
+                      onChange={(event) =>
+                        table
+                          .getColumn("name")
+                          ?.setFilterValue(event.target.value)
+                      }
+                      className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
                     />
-                    </div>
+                  </div>
                 </div>
               </div>
 

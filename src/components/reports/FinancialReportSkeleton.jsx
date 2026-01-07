@@ -27,7 +27,10 @@ export function FinancialReportSkeleton() {
         {/* Metrics Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="rounded-xl border-slate-200 shadow-sm bg-white">
+            <Card
+              key={i}
+              className="rounded-xl border-slate-200 shadow-sm bg-white"
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between space-y-0 pb-2">
                   <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
@@ -48,7 +51,11 @@ export function FinancialReportSkeleton() {
             </CardHeader>
             <CardContent className="h-[350px] flex items-end justify-between p-6 gap-2">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="w-full bg-slate-100 rounded-t animate-pulse" style={{ height: `${Math.random() * 80 + 20}%` }} />
+                <div
+                  key={i}
+                  className="w-full bg-slate-100 rounded-t animate-pulse"
+                  style={{ height: `${Math.random() * 80 + 20}%` }}
+                />
               ))}
             </CardContent>
           </Card>

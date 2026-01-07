@@ -40,7 +40,10 @@ export function DashboardSkeleton() {
         {/* Stats Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
+            <div
+              key={i}
+              className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="h-12 w-12 bg-slate-200 rounded-lg animate-pulse" />
                 <div className="h-6 w-16 bg-slate-200 rounded-full animate-pulse" />

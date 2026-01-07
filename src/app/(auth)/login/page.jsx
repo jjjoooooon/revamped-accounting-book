@@ -21,4 +21,3 @@ export const metadata = {
   title: "Login | Masjidhul Haadhi Accounting System",
   description: "Developed By : Inzeedo (PVT) Ltd.",
 };
-

@@ -11,7 +11,7 @@ export default function Header() {
   const { setTheme, theme } = useTheme();
   const { data: session } = useSession();
   const fetcher = (url) => fetch(url).then((res) => res.json());
-  const { data: settings } = useSWR('/api/settings/app', fetcher);
+  const { data: settings } = useSWR("/api/settings/app", fetcher);
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors duration-300">
@@ -63,7 +63,9 @@ export default function Header() {
             {/* User Profile */}
             <button className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
               <User className="w-5 h-5" />
-              <span className="hidden sm:block text-sm font-medium capitalize">{session?.user?.role || "User"}</span>
+              <span className="hidden sm:block text-sm font-medium capitalize">
+                {session?.user?.role || "User"}
+              </span>
             </button>
           </div>
         </div>

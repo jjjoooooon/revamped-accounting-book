@@ -29,7 +29,10 @@ export function AccountingSkeleton() {
             <div className="rounded-md border border-slate-100">
               <div className="h-12 bg-slate-50 border-b border-slate-100" />
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="flex items-center p-4 border-b border-slate-50 last:border-0">
+                <div
+                  key={i}
+                  className="flex items-center p-4 border-b border-slate-50 last:border-0"
+                >
                   <div className="h-4 w-24 bg-slate-200 rounded animate-pulse mr-4" />
                   <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mr-4" />
                   <div className="h-4 w-20 bg-slate-200 rounded animate-pulse mr-4" />

@@ -86,54 +86,65 @@ export default function FinancialReportsPage() {
   const [reportMonth, setReportMonth] = useState(monthOptions[0]);
 
   const handleMonthChange = (value) => {
-      setReportMonth(value);
-      const date = parse(value, "MMMM yyyy", new Date());
-      setDateRange({
-          from: startOfMonth(date),
-          to: endOfMonth(date),
-      });
+    setReportMonth(value);
+    const date = parse(value, "MMMM yyyy", new Date());
+    setDateRange({
+      from: startOfMonth(date),
+      to: endOfMonth(date),
+    });
   };
-  
+
   const [financialSummary, setFinancialSummary] = useState({
-    totalIncome: 0, totalExpense: 0, netSurplus: 0, cashOnHand: 0, bankBalance: 0, pendingBills: 0
+    totalIncome: 0,
+    totalExpense: 0,
+    netSurplus: 0,
+    cashOnHand: 0,
+    bankBalance: 0,
+    pendingBills: 0,
   });
-  const [incomeStatementData, setIncomeStatementData] = useState({ income: [], expenses: [] });
-  const [balanceSheetData, setBalanceSheetData] = useState({ assets: [], liabilities: [], equity: [] });
+  const [incomeStatementData, setIncomeStatementData] = useState({
+    income: [],
+    expenses: [],
+  });
+  const [balanceSheetData, setBalanceSheetData] = useState({
+    assets: [],
+    liabilities: [],
+    equity: [],
+  });
   const [monthlyPerformance, setMonthlyPerformance] = useState([]);
   const [expenseBreakdown, setExpenseBreakdown] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchReportData = async () => {
-      setLoading(true);
-      try {
-          const params = {};
-          if (dateRange?.from) params.from = dateRange.from.toISOString();
-          if (dateRange?.to) params.to = dateRange.to.toISOString();
+    setLoading(true);
+    try {
+      const params = {};
+      if (dateRange?.from) params.from = dateRange.from.toISOString();
+      if (dateRange?.to) params.to = dateRange.to.toISOString();
 
-          const data = await accountingService.getFinancialReport(params);
-          setFinancialSummary(data.summary);
-          setIncomeStatementData(data.incomeStatement);
-          setBalanceSheetData(data.balanceSheet);
-          setMonthlyPerformance(data.monthlyPerformance);
-          
-          // Generate expense breakdown for pie chart
-          const breakdown = data.incomeStatement.expenses.map((e, i) => ({
-              name: e.category,
-              value: e.amount,
-              color: Object.values(THEME)[i % Object.values(THEME).length]
-          }));
-          setExpenseBreakdown(breakdown);
+      const data = await accountingService.getFinancialReport(params);
+      setFinancialSummary(data.summary);
+      setIncomeStatementData(data.incomeStatement);
+      setBalanceSheetData(data.balanceSheet);
+      setMonthlyPerformance(data.monthlyPerformance);
 
-      } catch (error) {
-          console.error("Failed to fetch report data", error);
-          toast.error("Failed to load financial reports");
-      } finally {
-          setLoading(false);
-      }
+      // Generate expense breakdown for pie chart
+      const breakdown = data.incomeStatement.expenses.map((e, i) => ({
+        name: e.category,
+        value: e.amount,
+        color: Object.values(THEME)[i % Object.values(THEME).length],
+      }));
+      setExpenseBreakdown(breakdown);
+    } catch (error) {
+      console.error("Failed to fetch report data", error);
+      toast.error("Failed to load financial reports");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-      fetchReportData();
+    fetchReportData();
   }, [dateRange]);
 
   // --- EXPORT HANDLERS ---
@@ -141,18 +152,18 @@ export default function FinancialReportsPage() {
   const downloadIncomeStatement = () => {
     const totalIncome = incomeStatementData.income.reduce(
       (a, b) => a + b.amount,
-      0
+      0,
     );
     const totalExpense = incomeStatementData.expenses.reduce(
       (a, b) => a + b.amount,
-      0
+      0,
     );
 
     generateFinancialPDF({
       title: "Statement of Income & Expenditure",
       period: `${format(dateRange.from, "MMM dd")} - ${format(
         dateRange.to,
-        "MMM dd, yyyy"
+        "MMM dd, yyyy",
       )}`,
       tables: [
         {
@@ -197,15 +208,15 @@ export default function FinancialReportsPage() {
   const downloadBalanceSheet = () => {
     const totalAssets = balanceSheetData.assets.reduce(
       (a, b) => a + b.value,
-      0
+      0,
     );
     const totalLiab = balanceSheetData.liabilities.reduce(
       (a, b) => a + b.value,
-      0
+      0,
     );
     const totalEquity = balanceSheetData.equity.reduce(
       (a, b) => a + b.value,
-      0
+      0,
     );
 
     generateFinancialPDF({
@@ -369,7 +380,9 @@ export default function FinancialReportsPage() {
               </SelectTrigger>
               <SelectContent>
                 {monthOptions.map((month) => (
-                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  <SelectItem key={month} value={month}>
+                    {month}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

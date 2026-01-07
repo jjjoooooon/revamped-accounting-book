@@ -14,7 +14,7 @@ import {
   Wallet,
   Calendar,
   Filter,
-  Pencil
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -30,12 +30,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -82,7 +77,10 @@ const columns = [
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
@@ -100,22 +98,27 @@ const columns = [
   {
     accessorKey: "donor_name",
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
         Donor Name <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
-        const name = row.original.donor_name;
-        const isAnonymous = name === "Anonymous" || name === "Friday Collection";
-        return (
-            <div className="flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${isAnonymous ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
-                    {isAnonymous ? "?" : name.charAt(0)}
-                </div>
-                <span className="font-medium text-slate-900">{name}</span>
-            </div>
-        )
-    }
+      const name = row.original.donor_name;
+      const isAnonymous = name === "Anonymous" || name === "Friday Collection";
+      return (
+        <div className="flex items-center gap-3">
+          <div
+            className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${isAnonymous ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}
+          >
+            {isAnonymous ? "?" : name.charAt(0)}
+          </div>
+          <span className="font-medium text-slate-900">{name}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "purpose",
@@ -123,27 +126,43 @@ const columns = [
     cell: ({ row }) => {
       const purpose = row.original.purpose;
       let badgeColor = "bg-slate-100 text-slate-600 hover:bg-slate-200"; // Default
-      
-      if (purpose === "Zakat") badgeColor = "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200";
-      if (purpose === "Building Fund") badgeColor = "bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200";
-      if (purpose === "Jummah") badgeColor = "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100";
 
-      return <Badge variant="outline" className={`${badgeColor} border`}>{purpose}</Badge>;
+      if (purpose === "Zakat")
+        badgeColor =
+          "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200";
+      if (purpose === "Building Fund")
+        badgeColor =
+          "bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200";
+      if (purpose === "Jummah")
+        badgeColor =
+          "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100";
+
+      return (
+        <Badge variant="outline" className={`${badgeColor} border`}>
+          {purpose}
+        </Badge>
+      );
     },
   },
   {
     accessorKey: "amount",
-    header: ({ column }) => (
-        <div className="text-right">Amount</div>
-    ),
+    header: ({ column }) => <div className="text-right">Amount</div>,
     cell: ({ row }) => {
-      return <div className="text-right font-bold text-slate-900">{formatCurrency(row.getValue("amount"))}</div>;
+      return (
+        <div className="text-right font-bold text-slate-900">
+          {formatCurrency(row.getValue("amount"))}
+        </div>
+      );
     },
   },
   {
     accessorKey: "date",
     header: "Date",
-    cell: ({ row }) => <div className="text-sm text-slate-500">{format(new Date(row.getValue("date")), "MMM dd, yyyy")}</div>,
+    cell: ({ row }) => (
+      <div className="text-sm text-slate-500">
+        {format(new Date(row.getValue("date")), "MMM dd, yyyy")}
+      </div>
+    ),
   },
   {
     id: "actions",
@@ -161,15 +180,15 @@ const columns = [
             <DropdownMenuItem>Print Acknowledgement</DropdownMenuItem>
             <DropdownMenuSeparator />
             <Link href={`/donations/${row.original.id}/edit`}>
-                <DropdownMenuItem>
-                    <Pencil className="w-4 h-4 mr-2" /> Edit Details
-                </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Pencil className="w-4 h-4 mr-2" /> Edit Details
+              </DropdownMenuItem>
             </Link>
-            <DropdownMenuItem 
-                className="text-red-600"
-                onClick={() => table.options.meta?.handleDelete(row.original.id)}
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={() => table.options.meta?.handleDelete(row.original.id)}
             >
-                Void Transaction
+              Void Transaction
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -191,36 +210,40 @@ export default function DonationsPage() {
   const [donations, setDonations] = useState([]);
 
   const fetchDonations = async () => {
-      try {
-          const data = await donationService.getAll();
-          // Map API data to table format if needed, or adjust columns
-          const formattedData = data.map(d => ({
-              ...d,
-              donor_name: d.isAnonymous ? "Anonymous" : (d.member ? d.member.name : d.donorName),
-              // Ensure date is string or date object as expected by column formatter
-          }));
-          setDonations(formattedData);
-      } catch (error) {
-          console.error("Failed to fetch donations", error);
-          toast.error("Failed to load donations");
-      }
+    try {
+      const data = await donationService.getAll();
+      // Map API data to table format if needed, or adjust columns
+      const formattedData = data.map((d) => ({
+        ...d,
+        donor_name: d.isAnonymous
+          ? "Anonymous"
+          : d.member
+            ? d.member.name
+            : d.donorName,
+        // Ensure date is string or date object as expected by column formatter
+      }));
+      setDonations(formattedData);
+    } catch (error) {
+      console.error("Failed to fetch donations", error);
+      toast.error("Failed to load donations");
+    }
   };
 
   useState(() => {
-      fetchDonations();
+    fetchDonations();
   }, []);
 
   const handleDelete = async (id) => {
-      if(confirm("Are you sure you want to delete this donation?")) {
-          try {
-              await donationService.delete(id);
-              toast.success("Donation deleted");
-              fetchDonations();
-          } catch (error) {
-              console.error("Failed to delete donation", error);
-              toast.error("Failed to delete donation");
-          }
+    if (confirm("Are you sure you want to delete this donation?")) {
+      try {
+        await donationService.delete(id);
+        toast.success("Donation deleted");
+        fetchDonations();
+      } catch (error) {
+        console.error("Failed to delete donation", error);
+        toast.error("Failed to delete donation");
       }
+    }
   };
 
   const table = useReactTable({
@@ -235,8 +258,8 @@ export default function DonationsPage() {
     onRowSelectionChange: setRowSelection,
     state: { sorting, columnFilters, rowSelection },
     meta: {
-        handleDelete // Pass delete handler to columns
-    }
+      handleDelete, // Pass delete handler to columns
+    },
   });
 
   return (
@@ -256,93 +279,136 @@ export default function DonationsPage() {
         className="relative z-10 flex flex-col space-y-6 px-6 pb-6 pt-8 max-w-7xl mx-auto"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               <HandCoins className="h-8 w-8 text-emerald-600" />
               Donations & Collections
             </h1>
-            <p className="text-slate-500">Track incoming funds, Zakat, and other contributions.</p>
+            <p className="text-slate-500">
+              Track incoming funds, Zakat, and other contributions.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50">
+            <Button
+              variant="outline"
+              className="gap-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
               <Download className="h-4 w-4" /> Export
             </Button>
             <Link href="/donations/new">
-                <Button 
-                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
-                    onClick={() => setIsNavigating(true)}
-                    disabled={isNavigating}
-                >
-                {isNavigating ? <LoaderIcon className="animate-spin h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
+              <Button
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-200"
+                onClick={() => setIsNavigating(true)}
+                disabled={isNavigating}
+              >
+                {isNavigating ? (
+                  <LoaderIcon className="animate-spin h-4 w-4" />
+                ) : (
+                  <PlusCircle className="h-4 w-4" />
+                )}
                 Add Donation
-                </Button>
+              </Button>
             </Link>
           </div>
         </motion.div>
 
         {/* Stats Cards */}
-        <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          variants={itemVariants}
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        >
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Total Collected</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Total Collected
+              </CardTitle>
               <Wallet className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
-                {formatCurrency(donations.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0))}
+                {formatCurrency(
+                  donations.reduce(
+                    (acc, curr) => acc + (Number(curr.amount) || 0),
+                    0,
+                  ),
+                )}
               </div>
-              <p className="text-xs text-slate-400 mt-1">Lifetime collections</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Lifetime collections
+              </p>
             </CardContent>
           </Card>
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">This Month</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                This Month
+              </CardTitle>
               <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
                 {formatCurrency(
-                    donations
-                        .filter(d => new Date(d.date).getMonth() === new Date().getMonth() && new Date(d.date).getFullYear() === new Date().getFullYear())
-                        .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)
+                  donations
+                    .filter(
+                      (d) =>
+                        new Date(d.date).getMonth() === new Date().getMonth() &&
+                        new Date(d.date).getFullYear() ===
+                          new Date().getFullYear(),
+                    )
+                    .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0),
                 )}
               </div>
-              <p className="text-xs text-emerald-600 font-medium mt-1">Current month total</p>
+              <p className="text-xs text-emerald-600 font-medium mt-1">
+                Current month total
+              </p>
             </CardContent>
           </Card>
           <Card className="rounded-xl border-slate-100 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">Zakat Fund</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">
+                Zakat Fund
+              </CardTitle>
               <Heart className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
                 {formatCurrency(
-                    donations
-                        .filter(d => d.purpose === "Zakat")
-                        .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)
+                  donations
+                    .filter((d) => d.purpose === "Zakat")
+                    .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0),
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-1">Restricted funds</p>
             </CardContent>
           </Card>
-           <Card className="rounded-xl shadow-sm bg-emerald-50 border-emerald-100">
+          <Card className="rounded-xl shadow-sm bg-emerald-50 border-emerald-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-700">Recent Donors</CardTitle>
+              <CardTitle className="text-sm font-medium text-emerald-700">
+                Recent Donors
+              </CardTitle>
               <HandCoins className="h-4 w-4 text-emerald-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-900">
-                {donations.filter(d => {
+                {
+                  donations.filter((d) => {
                     const date = new Date(d.date);
                     const now = new Date();
                     const diffTime = Math.abs(now - date);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    const diffDays = Math.ceil(
+                      diffTime / (1000 * 60 * 60 * 24),
+                    );
                     return diffDays <= 7;
-                }).length}
+                  }).length
+                }
               </div>
-              <p className="text-xs text-emerald-600 mt-1">Contributors this week</p>
+              <p className="text-xs text-emerald-600 mt-1">
+                Contributors this week
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -351,34 +417,45 @@ export default function DonationsPage() {
         <motion.div variants={itemVariants}>
           <Card className="rounded-xl border-slate-100 shadow-sm overflow-hidden bg-white">
             <CardContent className="pt-6">
-                
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
-                    <div className="relative w-full max-w-sm">
+                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                        placeholder="Search donors..."
-                        value={table.getColumn("donor_name")?.getFilterValue() ?? ""}
-                        onChange={(event) => table.getColumn("donor_name")?.setFilterValue(event.target.value)}
-                        className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="Search donors..."
+                      value={
+                        table.getColumn("donor_name")?.getFilterValue() ?? ""
+                      }
+                      onChange={(event) =>
+                        table
+                          .getColumn("donor_name")
+                          ?.setFilterValue(event.target.value)
+                      }
+                      className="pl-10 bg-slate-50 border-slate-200 focus:ring-emerald-500 focus:border-emerald-500"
                     />
-                    </div>
-                    <Select
-                        value={table.getColumn("purpose")?.getFilterValue() ?? ""}
-                        onValueChange={(value) => table.getColumn("purpose")?.setFilterValue(value === "all" ? undefined : value)}
-                    >
+                  </div>
+                  <Select
+                    value={table.getColumn("purpose")?.getFilterValue() ?? ""}
+                    onValueChange={(value) =>
+                      table
+                        .getColumn("purpose")
+                        ?.setFilterValue(value === "all" ? undefined : value)
+                    }
+                  >
                     <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200 focus:ring-emerald-500">
-                        <SelectValue placeholder="Fund / Purpose" />
+                      <SelectValue placeholder="Fund / Purpose" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Funds</SelectItem>
-                        <SelectItem value="General">General Fund</SelectItem>
-                        <SelectItem value="Zakat">Zakat</SelectItem>
-                        <SelectItem value="Building Fund">Building Fund</SelectItem>
-                        <SelectItem value="Jummah">Jummah Collection</SelectItem>
+                      <SelectItem value="all">All Funds</SelectItem>
+                      <SelectItem value="General">General Fund</SelectItem>
+                      <SelectItem value="Zakat">Zakat</SelectItem>
+                      <SelectItem value="Building Fund">
+                        Building Fund
+                      </SelectItem>
+                      <SelectItem value="Jummah">Jummah Collection</SelectItem>
                     </SelectContent>
-                    </Select>
+                  </Select>
                 </div>
               </div>
 

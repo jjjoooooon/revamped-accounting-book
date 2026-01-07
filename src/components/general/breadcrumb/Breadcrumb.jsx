@@ -49,7 +49,7 @@ export function SystemBreadcrumb() {
         <BreadcrumbLink asChild>
           <Link href="/">Home</Link>
         </BreadcrumbLink>
-      </BreadcrumbItem>
+      </BreadcrumbItem>,
     );
 
     // Add separator if there are additional segments
@@ -73,7 +73,7 @@ export function SystemBreadcrumb() {
           ) : (
             <BreadcrumbPage>{formattedName}</BreadcrumbPage>
           )}
-        </BreadcrumbItem>
+        </BreadcrumbItem>,
       );
 
       // Add separator if not the last item

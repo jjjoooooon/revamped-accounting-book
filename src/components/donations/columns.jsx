@@ -138,7 +138,7 @@ export const columns = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      
+
       // Determine badge color based on status
       let variant = "secondary";
       if (status === "active") variant = "default"; // Black/Primary
@@ -172,21 +172,21 @@ export const columns = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            
+
             <Link href={`/members/${member.id}`} passHref>
               <DropdownMenuItem>View Profile</DropdownMenuItem>
             </Link>
-            
+
             <Link href={`/members/${member.id}/edit`} passHref>
               <DropdownMenuItem>Edit Details</DropdownMenuItem>
             </Link>
-            
+
             <Link href={`/billing/create?member_id=${member.id}`} passHref>
               <DropdownMenuItem>Record Payment</DropdownMenuItem>
             </Link>
 
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuItem className="text-red-500">
               Deactivate / Archive
             </DropdownMenuItem>
