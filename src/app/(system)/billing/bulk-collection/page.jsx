@@ -1,0 +1,432 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { format, addMonths, subMonths, eachMonthOfInterval, parseISO, startOfMonth, endOfMonth } from 'date-fns';
+import { Search, Loader2, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, User, Phone, Mail, MapPin, Calendar, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export default function BulkCollectionPage() {
+    // Default range: Current month - 5 to Current month + 6
+    const [startMonth, setStartMonth] = useState(format(subMonths(new Date(), 5), 'yyyy-MM'));
+    const [endMonth, setEndMonth] = useState(format(addMonths(new Date(), 6), 'yyyy-MM'));
+    
+    const [members, setMembers] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedPayments, setSelectedPayments] = useState({}); // { memberId_month: true }
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    
+    // Member Details Modal State
+    const [selectedMember, setSelectedMember] = useState(null);
+    const [isMemberDetailsOpen, setIsMemberDetailsOpen] = useState(false);
+
+    useEffect(() => {
+        fetchMembers();
+    }, [startMonth, endMonth]);
+
+    const fetchMembers = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/sanda/bulk-status?startMonth=${startMonth}&endMonth=${endMonth}`);
+            if (!res.ok) throw new Error('Failed to fetch data');
+            const data = await res.json();
+            setMembers(data);
+            setSelectedPayments({}); // Reset selection on range change
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to load members");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const filteredMembers = members.filter(member =>
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.contact.includes(searchTerm)
+    );
+
+    // Generate months for columns
+    const months = eachMonthOfInterval({
+        start: parseISO(startMonth + '-01'),
+        end: parseISO(endMonth + '-01')
+    }).map(d => format(d, 'yyyy-MM'));
+
+    const toggleSelection = (memberId, month, currentStatus) => {
+        if (currentStatus === 'paid') return;
+
+        const key = `${memberId}_${month}`;
+        setSelectedPayments(prev => {
+            const newSelected = { ...prev };
+            if (newSelected[key]) {
+                delete newSelected[key];
+            } else {
+                newSelected[key] = true;
+            }
+            return newSelected;
+        });
+    };
+
+    const handleMemberClick = (member) => {
+        setSelectedMember(member);
+        setIsMemberDetailsOpen(true);
+    };
+
+    const handleSelectColumn = (month) => {
+        const newSelected = { ...selectedPayments };
+        let allSelected = true;
+
+        filteredMembers.forEach(member => {
+            const status = member.payments[month]?.status || 'pending';
+            if (status !== 'paid') {
+                if (!newSelected[`${member.memberId}_${month}`]) {
+                    allSelected = false;
+                }
+            }
+        });
+
+        filteredMembers.forEach(member => {
+            const status = member.payments[month]?.status || 'pending';
+            if (status !== 'paid') {
+                if (allSelected) {
+                    delete newSelected[`${member.memberId}_${month}`];
+                } else {
+                    newSelected[`${member.memberId}_${month}`] = true;
+                }
+            }
+        });
+
+        setSelectedPayments(newSelected);
+    };
+
+    const getSelectedCount = () => Object.keys(selectedPayments).length;
+    
+    const getTotalAmount = () => {
+        return Object.keys(selectedPayments).reduce((total, key) => {
+            const [memberId, month] = key.split('_');
+            const member = members.find(m => m.memberId === memberId);
+            return total + (member ? member.amount : 0);
+        }, 0);
+    };
+
+    const handleSave = async () => {
+        setIsSubmitting(true);
+        try {
+            const payments = Object.keys(selectedPayments).map(key => {
+                const [memberId, month] = key.split('_');
+                const member = members.find(m => m.memberId === memberId);
+                const paymentInfo = member.payments[month];
+                return {
+                    memberId,
+                    amount: member.amount,
+                    invoiceId: paymentInfo?.invoiceId,
+                    period: month,
+                    method: 'Cash',
+                    bankAccountId: null
+                };
+            });
+
+            const res = await fetch('/api/sanda/bulk-pay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    payments, 
+                    period: payments[0]?.period || format(new Date(), 'yyyy-MM') 
+                }),
+            });
+
+            if (!res.ok) throw new Error('Failed to process payments');
+
+            const result = await res.json();
+            toast.success(`Successfully processed ${result.results.length} payments`);
+            setIsConfirmOpen(false);
+            fetchMembers(); // Refresh data
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to process payments");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Helper to generate month options
+    const generateMonthOptions = () => {
+        const options = [];
+        const today = new Date();
+        for (let i = -24; i <= 24; i++) {
+            const d = addMonths(today, i);
+            options.push(format(d, 'yyyy-MM'));
+        }
+        return options;
+    };
+    const monthOptions = generateMonthOptions();
+
+    return (
+        <div className="p-6 space-y-6 h-full flex flex-col">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Bulk Payment Matrix</h1>
+                    <p className="text-muted-foreground">Manage payments across multiple months.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Select value={startMonth} onValueChange={setStartMonth}>
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Start" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {monthOptions.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <span className="text-muted-foreground">-</span>
+                    <Select value={endMonth} onValueChange={setEndMonth}>
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="End" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {monthOptions.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <Card className="flex-1 flex flex-col overflow-hidden">
+                <CardHeader>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <CardTitle>Members Matrix</CardTitle>
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <div className="relative w-full md:w-64">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search members..."
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={handleSearch}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-hidden p-0">
+                    <ScrollArea className="h-[calc(100vh-250px)] w-full">
+                        <div className="min-w-[1000px]">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
+                                    <TableRow>
+                                        <TableHead className="w-[200px] sticky left-0 bg-background z-20">Member</TableHead>
+                                        {months.map(month => (
+                                            <TableHead key={month} className="text-center min-w-[80px] cursor-pointer hover:bg-muted/50" onClick={() => handleSelectColumn(month)}>
+                                                {format(parseISO(month + '-01'), 'MMM yy')}
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {loading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={months.length + 1} className="h-24 text-center">
+                                                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : filteredMembers.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={months.length + 1} className="h-24 text-center">
+                                                No members found.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        filteredMembers.map((member) => (
+                                            <TableRow key={member.memberId}>
+                                                <TableCell className="font-medium sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:bg-muted/50" onClick={() => handleMemberClick(member)}>
+                                                    <div className="flex flex-col">
+                                                        <span>{member.name}</span>
+                                                        <span className="text-xs text-muted-foreground">{member.contact}</span>
+                                                    </div>
+                                                </TableCell>
+                                                {months.map(month => {
+                                                    const status = member.payments[month]?.status || 'pending';
+                                                    const isSelected = !!selectedPayments[`${member.memberId}_${month}`];
+                                                    
+                                                    return (
+                                                        <TableCell 
+                                                            key={month} 
+                                                            className={`text-center p-1 border-l cursor-pointer transition-colors
+                                                                ${status === 'paid' ? 'bg-green-50 hover:bg-green-100' : 
+                                                                  isSelected ? 'bg-primary/20 hover:bg-primary/30' : 'hover:bg-muted'}
+                                                            `}
+                                                            onClick={() => toggleSelection(member.memberId, month, status)}
+                                                        >
+                                                            {status === 'paid' ? (
+                                                                <div className="flex justify-center">
+                                                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                                </div>
+                                                            ) : status === 'partial' ? (
+                                                                <Badge variant="secondary" className="text-[10px] px-1">Partial</Badge>
+                                                            ) : (
+                                                                isSelected && <div className="h-3 w-3 bg-primary rounded-full mx-auto" />
+                                                            )}
+                                                        </TableCell>
+                                                    );
+                                                })}
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                </CardContent>
+            </Card>
+
+            {/* Bulk Payment Confirmation Dialog */}
+            <div className="fixed bottom-6 right-6 z-50">
+                {getSelectedCount() > 0 && (
+                    <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="lg" className="shadow-lg animate-in fade-in slide-in-from-bottom-4">
+                                Collect Payment ({getSelectedCount()})
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Confirm Bulk Payment</DialogTitle>
+                                <DialogDescription>
+                                    You are about to record payments for {getSelectedCount()} items.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                                <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
+                                    <span className="font-medium">Total Amount:</span>
+                                    <span className="text-xl font-bold">{getTotalAmount().toFixed(2)}</span>
+                                </div>
+                                <div className="mt-4 max-h-[200px] overflow-y-auto space-y-2">
+                                    <p className="text-sm font-medium text-muted-foreground mb-2">Summary:</p>
+                                    {(() => {
+                                        const grouped = {};
+                                        Object.keys(selectedPayments).forEach(key => {
+                                            const [memberId, month] = key.split('_');
+                                            if (!grouped[memberId]) grouped[memberId] = [];
+                                            grouped[memberId].push(month);
+                                        });
+                                        
+                                        return Object.keys(grouped).map(memberId => {
+                                            const m = members.find(mem => mem.memberId === memberId);
+                                            const monthsList = grouped[memberId].sort();
+                                            return (
+                                                <div key={memberId} className="text-sm border-b pb-2 last:border-0">
+                                                    <div className="font-medium">{m?.name}</div>
+                                                    <div className="text-muted-foreground text-xs">
+                                                        {monthsList.length} months: {monthsList.join(', ')}
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>Cancel</Button>
+                                <Button onClick={handleSave} disabled={isSubmitting}>
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Confirm & Save
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </div>
+
+            {/* Member Details Modal */}
+            <Dialog open={isMemberDetailsOpen} onOpenChange={setIsMemberDetailsOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Member Details</DialogTitle>
+                    </DialogHeader>
+                    {selectedMember && (
+                        <div className="grid gap-4 py-4">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={selectedMember.profilePicture} alt={selectedMember.name} />
+                                    <AvatarFallback className="text-lg">{selectedMember.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h3 className="font-semibold text-lg">{selectedMember.name}</h3>
+                                    <Badge variant={selectedMember.status === 'active' ? 'default' : 'secondary'}>
+                                        {selectedMember.status}
+                                    </Badge>
+                                </div>
+                            </div>
+                            
+                            <div className="grid gap-3">
+                                <div className="flex items-center gap-3 text-sm">
+                                    <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <span>{selectedMember.contact}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <span>{selectedMember.email || 'No email provided'}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                    <span>{selectedMember.address || 'No address provided'}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span>Joined: {selectedMember.startDate ? format(new Date(selectedMember.startDate), 'PPP') : 'Unknown'}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                    <span>Monthly Sanda: <strong>{selectedMember.amount.toFixed(2)}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button onClick={() => setIsMemberDetailsOpen(false)}>Close</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}

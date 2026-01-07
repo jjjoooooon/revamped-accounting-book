@@ -60,6 +60,10 @@ export function AppSidebar({ ...props }) {
             url: "/billing/create",
           },
           {
+            title: "Bulk Collection",
+            url: "/billing/bulk-collection",
+          },
+          {
             title: "Payment History",
             url: "/billing/history",
           },
