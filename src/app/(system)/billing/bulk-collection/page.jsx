@@ -446,24 +446,25 @@ export default function BulkCollectionPage() {
                 {getSelectedCount() > 0 && (
                     <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                         <DialogTrigger asChild>
-                            <Button size="lg" className="shadow-lg animate-in fade-in slide-in-from-bottom-4">
+                            <Button size="lg" className="shadow-lg animate-in fade-in slide-in-from-bottom-4 bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700">
+                                <CheckCircle2 className="w-5 h-5 mr-2" />
                                 Collect Payment ({getSelectedCount()})
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-md">
+                        <DialogContent className="max-w-md border-emerald-100">
                             <DialogHeader>
-                                <DialogTitle>Confirm Bulk Payment</DialogTitle>
+                                <DialogTitle className="text-emerald-900">Confirm Bulk Payment</DialogTitle>
                                 <DialogDescription>
-                                    You are about to record payments for {getSelectedCount()} items.
+                                    You are about to record payments for <span className="font-semibold text-emerald-700">{getSelectedCount()} items</span>.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="py-4">
-                                <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-                                    <span className="font-medium">Total Amount:</span>
-                                    <span className="text-xl font-bold">{getTotalAmount().toFixed(2)}</span>
+                                <div className="flex justify-between items-center p-4 bg-emerald-50 border border-emerald-100 rounded-lg mb-4">
+                                    <span className="font-medium text-emerald-800">Total Amount:</span>
+                                    <span className="text-2xl font-bold text-emerald-700">Rs. {getTotalAmount().toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
-                                <div className="mt-4 max-h-[200px] overflow-y-auto space-y-2">
-                                    <p className="text-sm font-medium text-muted-foreground mb-2">Summary:</p>
+                                <div className="mt-2 max-h-[250px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Payment Summary</p>
                                     {(() => {
                                         const grouped = {};
                                         Object.keys(selectedPayments).forEach(key => {
@@ -476,10 +477,14 @@ export default function BulkCollectionPage() {
                                             const m = members.find(mem => mem.memberId === memberId);
                                             const monthsList = grouped[memberId].sort();
                                             return (
-                                                <div key={memberId} className="text-sm border-b pb-2 last:border-0">
-                                                    <div className="font-medium">{m?.name}</div>
-                                                    <div className="text-muted-foreground text-xs">
-                                                        {monthsList.length} months: {monthsList.join(', ')}
+                                                <div key={memberId} className="text-sm border-b border-slate-100 pb-2 last:border-0">
+                                                    <div className="font-medium text-slate-800">{m?.name}</div>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        {monthsList.map(month => (
+                                                            <Badge key={month} variant="outline" className="bg-white text-slate-600 font-normal border-slate-200">
+                                                                {format(parseISO(month + '-01'), 'MMMM yyyy')}
+                                                            </Badge>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             );
@@ -487,10 +492,10 @@ export default function BulkCollectionPage() {
                                     })()}
                                 </div>
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>Cancel</Button>
-                                <Button onClick={handleSave} disabled={isSubmitting}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <DialogFooter className="gap-2 sm:gap-0">
+                                <Button variant="outline" onClick={() => setIsConfirmOpen(false)} className="border-slate-200 text-slate-600">Cancel</Button>
+                                <Button onClick={handleSave} disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                                     Confirm & Save
                                 </Button>
                             </DialogFooter>
