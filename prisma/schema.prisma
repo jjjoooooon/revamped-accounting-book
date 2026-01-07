@@ -238,6 +238,7 @@ model AppSettings {
   
   // Organization Profile
   mosqueName      String   @default("Al-Manar Grand Mosque")
+  logo            String?  // Base64 or URL
   regNo           String?  @default("MQ/2023/885")
   email           String?  @default("admin@almanar.lk")
   phone           String?  @default("+94 77 123 4567")

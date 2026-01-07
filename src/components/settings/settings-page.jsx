@@ -84,6 +84,25 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [footerSettings, setFooterSettings] = useState(null);
   const hasInitialized = useRef(false);
+  const fileInputRef = useRef(null);
+  
+  // Logo Upload Handler
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Size validation (200KB)
+    if (file.size > 200 * 1024) {
+      toast.error("Logo must be less than 200KB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSettings(prev => ({ ...prev, logo: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
   
   // Factory Reset State
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -363,11 +382,25 @@ export default function SettingsPage() {
                                 <CardContent className="p-6 md:p-8 space-y-8">
                                     <div className="flex flex-col md:flex-row gap-8 items-start">
                                         <div className="flex-shrink-0 group relative">
-                                            <div className="h-32 w-32 rounded-full bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 transition-colors group-hover:border-emerald-500 group-hover:text-emerald-500">
-                                                <Building2 className="w-10 h-10" />
+                                            <div 
+                                                className="h-32 w-32 rounded-full bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 transition-colors group-hover:border-emerald-500 group-hover:text-emerald-500 overflow-hidden cursor-pointer"
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
+                                                {settings.logo ? (
+                                                    <img src={settings.logo} alt="Mosque Logo" className="h-full w-full object-contain" />
+                                                ) : (
+                                                    <Building2 className="w-10 h-10" />
+                                                )}
                                             </div>
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef} 
+                                                className="hidden" 
+                                                accept="image/*"
+                                                onChange={handleLogoUpload}
+                                            />
                                             <div className="absolute -bottom-2 -right-2">
-                                                <Button size="icon" className="h-8 w-8 rounded-full shadow-md bg-white text-slate-700 hover:bg-slate-50 border border-slate-200">
+                                                <Button size="icon" className="h-8 w-8 rounded-full shadow-md bg-white text-slate-700 hover:bg-slate-50 border border-slate-200" onClick={() => fileInputRef.current?.click()}>
                                                     <Settings className="w-4 h-4" />
                                                 </Button>
                                             </div>
